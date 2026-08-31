@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GymTracker{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- ====== NAVBAR ====== -->
+    <nav class="navbar" role="navigation" aria-label="Navegación principal">
+        <div class="navbar__container">
+
+            <!-- Brand -->
+            <a href="{{ url_for('dashboard.index') }}" class="navbar__brand">
+                <span class="navbar__logo" aria-hidden="true">&#9878;</span>
+                GymTracker
+            </a>
+
+            <!-- Hamburger (mobile) -->
+            <button class="navbar__toggle" id="nav-toggle"
+                    aria-label="Abrir menú" aria-expanded="false"
+                    aria-controls="nav-menu">
+                <span class="navbar__toggle-bar"></span>
+                <span class="navbar__toggle-bar"></span>
+                <span class="navbar__toggle-bar"></span>
+            </button>
+
+            <!-- Links -->
+            <ul class="navbar__menu" id="nav-menu" role="menu">
+                <li role="none">
+                    <a href="{{ url_for('dashboard.index') }}"
+                       class="navbar__link {% if request.endpoint == 'dashboard.index' %}navbar__link--active{% endif %}"
+                       role="menuitem">
+                        Dashboard
+                    </a>
+                </li>
+                {% if current_user.is_authenticated %}
+                    <li role="none">
+                        <a href="{{ url_for('workouts.index') }}" 
+                           class="navbar__link {% if request.endpoint and request.endpoint.startswith('workouts.') %}navbar__link--active{% endif %}" 
+                           role="menuitem">
+                            Entrenamientos
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a href="{{ url_for('routines.index') }}"
+                           class="navbar__link {% if request.endpoint == 'routines.index' %}navbar__link--active{% endif %}"
+                           role="menuitem">
+                            Rutinas
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a href="{{ url_for('exercises.index') }}"
+                           class="navbar__link {% if request.endpoint == 'exercises.index' %}navbar__link--active{% endif %}"
+                           role="menuitem">
+                            Ejercicios
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a href="{{ url_for('telegram.connect_view') }}"
+                           class="navbar__link {% if request.endpoint and request.endpoint.startswith('telegram.') %}navbar__link--active{% endif %}"
+                           role="menuitem">
+                            Bot Telegram
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a href="{{ url_for('auth.logout') }}" class="navbar__link" role="menuitem" style="color: var(--color-danger);">
+                            Cerrar Sesión
+                        </a>
+                    </li>
+                {% else %}
+                    <li role="none">
+                        <a href="{{ url_for('auth.login') }}" class="navbar__link" role="menuitem">
+                            Iniciar Sesión
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn--sm" role="menuitem" style="margin-left: var(--space-sm);">
+                            Registrarse
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+
+            <!-- Theme toggle -->
+            <button class="theme-toggle" id="theme-toggle"
+                    aria-label="Cambiar tema" title="Cambiar tema">
+                <span class="theme-toggle__icon theme-toggle__icon--light"
+                      aria-hidden="true">&#9788;</span>
+                <span class="theme-toggle__icon theme-toggle__icon--dark"
+                      aria-hidden="true">&#9790;</span>
+            </button>
+
+        </div>
+    </nav>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <main class="main-content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- ====== FOOTER ====== -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 GymTracker &mdash; Tu progreso, tu control.</p>
+        </div>
+    </footer>
+
+    <!-- ====== SCRIPTS ====== -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

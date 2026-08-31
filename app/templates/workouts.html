@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Entrenamientos — GymTracker{% endblock %}
+
+{% block content %}
+<div class="page-header flex flex--between flex--wrap flex--gap-md">
+    <div>
+        <h1 class="page-header__title">Historial de Entrenamientos</h1>
+        <p class="page-header__subtitle">Consulta tus sesiones pasadas y métricas.</p>
+    </div>
+    <a href="{{ url_for('workouts.new_workout') }}" class="btn">Iniciar Entrenamiento</a>
+</div>
+
+{% if history %}
+    <div class="grid grid--cols-3">
+        {% for log in history %}
+            <div class="card">
+                <div class="card__header">
+                    <p class="badge badge--custom">{{ log.date }}</p>
+                    {% if log.duration %}
+                        <span class="card__detail">{{ log.duration }} min</span>
+                    {% endif %}
+                </div>
+                <h3 class="card__title">{{ log.routine_name }}</h3>
+                <div class="flex flex--between" style="margin-top: var(--space-md);">
+                    <div>
+                        <p class="card__label">Volumen</p>
+                        <p class="card__value card__value--sm">{{ "{:,.1f}".format(log.volume).replace(",", ".").replace(".0", "") }} kg</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p class="card__label">Series</p>
+                        <p class="card__value card__value--sm">{{ log.sets_count }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state card">
+        <p class="empty-state__text">Aún no has registrado ningún entrenamiento.</p>
+        <a href="{{ url_for('workouts.new_workout') }}" class="btn" style="margin-top: var(--space-md);">Registrar tu primer entrenamiento</a>
+    </div>
+{% endif %}
+{% endblock %}

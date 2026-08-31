@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Conectar Telegram — GymTracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-header__title">Conectar con Telegram</h1>
+    <p class="page-header__subtitle">Loguea tus entrenamientos sin abrir el navegador.</p>
+</div>
+
+<div class="grid grid--cols-2">
+    <div class="card">
+        <h2 class="section__title" style="margin-bottom: var(--space-md);">Instrucciones</h2>
+        <ol style="margin-left: var(--space-lg); line-height: 1.6;">
+            <li>Abre Telegram y busca el bot <strong>@TuGymTrackerBot</strong> (reemplaza con tu bot real).</li>
+            <li>Haz clic en el botón inferior para generar tu Token Único.</li>
+            <li>Envíale ese código al bot en Telegram.</li>
+            <li>¡Listo! Podrás iniciar rutinas directamente desde el chat.</li>
+        </ol>
+        <p style="margin-top: var(--space-lg); color: var(--color-text-secondary); font-size: var(--font-size-sm);">
+            <strong>Nota de Privacidad:</strong> Nunca le pediremos tu contraseña a través del bot. Todo el registro de series está encriptado con tu cuenta web.
+        </p>
+    </div>
+
+    <div class="card" style="text-align: center; padding: var(--space-2xl);">
+        {% if user.telegram_chat_id %}
+            <div style="font-size: 48px; color: var(--color-success); margin-bottom: var(--space-md);">
+                &#10004;
+            </div>
+            <h3 class="card__title">¡Cuenta Conectada!</h3>
+            <p class="card__detail" style="margin-bottom: var(--space-lg);">Tu cuenta de Telegram está vinculada exitosamente.</p>
+        {% else %}
+            <h3 class="card__title" style="margin-bottom: var(--space-lg);">Token de Vinculación</h3>
+            
+            <div id="token-display" style="font-size: var(--font-size-2xl); letter-spacing: 0.1em; font-weight: bold; font-family: monospace; padding: var(--space-lg); background-color: var(--color-surface-hover); border-radius: var(--radius-md); border: 2px dashed var(--color-border); margin-bottom: var(--space-lg); display: none;">
+                <!-- Token appears here -->
+            </div>
+
+            <button id="btn-generate-token" class="btn" style="width: 100%;">
+                Generar Código
+            </button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/telegram.js') }}"></script>
+{% endblock %}

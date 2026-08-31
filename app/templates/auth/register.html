@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Registrarse — GymTracker{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card auth-card">
+        <h1 class="page-header__title" style="text-align: center; margin-bottom: var(--space-xs);">Crea tu Cuenta</h1>
+        <p class="page-header__subtitle" style="text-align: center; margin-bottom: var(--space-xl);">Comienza a registrar tus progresos</p>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" id="register-form">
+            <!-- Flask Flash Messages as inline alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert--{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="form-group">
+                <label for="username" class="form-label">Nombre de Usuario</label>
+                <input type="text" id="username" name="username" class="form-input" required autofocus placeholder="Tu nombre">
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Correo Electrónico</label>
+                <input type="email" id="email" name="email" class="form-input" required placeholder="tu@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" id="password" name="password" class="form-input" required placeholder="••••••••" minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password" class="form-label">Confirmar Contraseña</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-input" required placeholder="••••••••" minlength="6">
+                <div id="password-error" class="form-error" style="display: none; color: var(--color-danger); font-size: var(--font-size-xs); margin-top: 4px;">Las contraseñas no coinciden.</div>
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%; margin-top: var(--space-md);">Registrarse</button>
+        </form>
+
+        <p class="auth-links">
+            ¿Ya tienes una cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}
