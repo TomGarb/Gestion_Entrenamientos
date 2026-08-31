@@ -1,15 +1,14 @@
 """
-Modelo Exercise — Catálogo de ejercicios.
-
-Incluye ejercicios predefinidos del sistema (is_custom=False, user_id=NULL)
-y ejercicios personalizados creados por cada usuario (is_custom=True).
+Modelo Exercise — Catálogo de ejercicios (Pure SQLAlchemy).
 """
 
 from datetime import datetime, timezone
 
-from app import db
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 
-# Valores permitidos para el grupo muscular.
+from app.database import Base
+
 MUSCLE_GROUPS: list[str] = [
     "pecho",
     "espalda",
@@ -22,37 +21,39 @@ MUSCLE_GROUPS: list[str] = [
 ]
 
 
-class Exercise(db.Model):
+class Exercise(Base):
     """Representa un ejercicio del catálogo (predefinido o personalizado)."""
 
     __tablename__ = "exercises"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    muscle_group = db.Column(db.String(50), nullable=False)
-    equipment = db.Column(db.String(100), default="", nullable=False)
-    description = db.Column(db.Text, default="", nullable=False)
-    is_custom = db.Column(db.Boolean, default=False, nullable=False)
-    user_id = db.Column(
-        db.Integer, db.ForeignKey("users.id"), nullable=True
+    id = Column(Integer, primary_key=True)
+    name = Column(String(120), nullable=False)
+    muscle_group = Column(String(50), nullable=False)
+    equipment = Column(String(100), default="", nullable=False)
+    description = Column(Text, default="", nullable=False)
+    is_custom = Column(Boolean, default=False, nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=True
     )
-    created_at = db.Column(
-        db.DateTime(timezone=True),
+    created_at = Column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
 
     # --- Relaciones -----------------------------------------------------------
-    routine_exercises = db.relationship(
+    creator = relationship(
+        "User",
+        back_populates="custom_exercises",
+    )
+    routine_exercises = relationship(
         "RoutineExercise",
-        backref="exercise",
-        lazy="dynamic",
+        back_populates="exercise",
         cascade="all, delete-orphan",
     )
-    workout_sets = db.relationship(
+    workout_sets = relationship(
         "WorkoutSet",
-        backref="exercise",
-        lazy="dynamic",
+        back_populates="exercise",
         cascade="all, delete-orphan",
     )
 

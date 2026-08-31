@@ -1,74 +1,79 @@
 """
-Modelos Routine y RoutineExercise — Plantillas de rutinas.
-
-Routine: plantilla de entrenamiento creada por un usuario.
-RoutineExercise: tabla asociativa N:M que define los ejercicios
-que componen una rutina, con series, repeticiones, descanso y orden.
+Modelos Routine y RoutineExercise — Plantillas de rutinas (Pure SQLAlchemy).
 """
 
 from datetime import datetime, timezone
 
-from app import db
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
 
 
-class Routine(db.Model):
+class Routine(Base):
     """Plantilla de rutina de entrenamiento."""
 
     __tablename__ = "routines"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.Text, default="", nullable=False)
-    user_id = db.Column(
-        db.Integer, db.ForeignKey("users.id"), nullable=False
+    id = Column(Integer, primary_key=True)
+    name = Column(String(120), nullable=False)
+    description = Column(Text, default="", nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=False
     )
-    is_public = db.Column(db.Boolean, default=False, nullable=False)
-    created_at = db.Column(
-        db.DateTime(timezone=True),
+    is_public = Column(Boolean, default=False, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
-    updated_at = db.Column(
-        db.DateTime(timezone=True),
+    updated_at = Column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
 
     # --- Relaciones -----------------------------------------------------------
-    routine_exercises = db.relationship(
+    author = relationship(
+        "User",
+        back_populates="routines",
+    )
+    routine_exercises = relationship(
         "RoutineExercise",
-        backref="routine",
-        lazy="dynamic",
+        back_populates="routine",
         cascade="all, delete-orphan",
         order_by="RoutineExercise.order_index",
     )
-    workout_logs = db.relationship(
+    workout_logs = relationship(
         "WorkoutLog",
-        backref="routine",
-        lazy="dynamic",
+        back_populates="routine",
     )
 
     def __repr__(self) -> str:
         return f"<Routine {self.name}>"
 
 
-class RoutineExercise(db.Model):
+class RoutineExercise(Base):
     """Ejercicio dentro de una rutina (tabla asociativa N:M)."""
 
     __tablename__ = "routine_exercises"
 
-    id = db.Column(db.Integer, primary_key=True)
-    routine_id = db.Column(
-        db.Integer, db.ForeignKey("routines.id"), nullable=False
+    id = Column(Integer, primary_key=True)
+    routine_id = Column(
+        Integer, ForeignKey("routines.id"), nullable=False
     )
-    exercise_id = db.Column(
-        db.Integer, db.ForeignKey("exercises.id"), nullable=False
+    exercise_id = Column(
+        Integer, ForeignKey("exercises.id"), nullable=False
     )
-    sets = db.Column(db.Integer, nullable=False, default=3)
-    reps = db.Column(db.Integer, nullable=False, default=10)
-    rest_seconds = db.Column(db.Integer, nullable=False, default=60)
-    order_index = db.Column(db.Integer, nullable=False, default=0)
+    sets = Column(Integer, nullable=False, default=3)
+    reps = Column(Integer, nullable=False, default=10)
+    rest_seconds = Column(Integer, nullable=False, default=60)
+    order_index = Column(Integer, nullable=False, default=0)
+
+    # --- Relaciones -----------------------------------------------------------
+    routine = relationship("Routine", back_populates="routine_exercises")
+    exercise = relationship("Exercise", back_populates="routine_exercises")
 
     def __repr__(self) -> str:
         return (

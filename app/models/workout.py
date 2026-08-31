@@ -1,44 +1,46 @@
 """
-Modelos WorkoutLog y WorkoutSet — Registro de entrenamientos.
-
-WorkoutLog: sesión de entrenamiento concreta realizada en una fecha.
-WorkoutSet: serie individual dentro de una sesión (peso, reps, RPE).
+Modelos WorkoutLog y WorkoutSet — Registro de entrenamientos (Pure SQLAlchemy).
 """
 
 from datetime import date, datetime, timezone
 
-from app import db
+from sqlalchemy import Column, Integer, String, Text, Float, Date, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
 
 
-class WorkoutLog(db.Model):
+class WorkoutLog(Base):
     """Registro de una sesión de entrenamiento."""
 
     __tablename__ = "workout_logs"
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(
-        db.Integer, db.ForeignKey("users.id"), nullable=False
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=False
     )
-    routine_id = db.Column(
-        db.Integer, db.ForeignKey("routines.id"), nullable=True
+    routine_id = Column(
+        Integer, ForeignKey("routines.id"), nullable=True
     )
-    date = db.Column(
-        db.Date, nullable=False, default=lambda: date.today()
+    date = Column(
+        Date, nullable=False, default=lambda: date.today()
     )
-    status = db.Column(db.String(20), default="in_progress", nullable=False)
-    duration_minutes = db.Column(db.Integer, nullable=True)
-    notes = db.Column(db.Text, default="", nullable=False)
-    created_at = db.Column(
-        db.DateTime(timezone=True),
+    status = Column(String(20), default="in_progress", nullable=False)
+    duration_minutes = Column(Integer, nullable=True)
+    notes = Column(Text, default="", nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
 
     # --- Relaciones -----------------------------------------------------------
-    sets = db.relationship(
+    user = relationship("User", back_populates="workout_logs")
+    routine = relationship("Routine", back_populates="workout_logs")
+    
+    sets = relationship(
         "WorkoutSet",
-        backref="workout_log",
-        lazy="dynamic",
+        back_populates="workout_log",
         cascade="all, delete-orphan",
         order_by="WorkoutSet.set_number",
     )
@@ -47,28 +49,27 @@ class WorkoutLog(db.Model):
         return f"<WorkoutLog {self.date} user={self.user_id}>"
 
 
-class WorkoutSet(db.Model):
-    """Serie individual realizada dentro de un entrenamiento.
-
-    Columna clave para métricas:
-        volumen = reps_completed × weight_kg
-        progreso = evolución temporal del peso/volumen por ejercicio
-    """
+class WorkoutSet(Base):
+    """Serie individual realizada dentro de un entrenamiento."""
 
     __tablename__ = "workout_sets"
 
-    id = db.Column(db.Integer, primary_key=True)
-    workout_log_id = db.Column(
-        db.Integer, db.ForeignKey("workout_logs.id"), nullable=False
+    id = Column(Integer, primary_key=True)
+    workout_log_id = Column(
+        Integer, ForeignKey("workout_logs.id"), nullable=False
     )
-    exercise_id = db.Column(
-        db.Integer, db.ForeignKey("exercises.id"), nullable=False
+    exercise_id = Column(
+        Integer, ForeignKey("exercises.id"), nullable=False
     )
-    set_number = db.Column(db.Integer, nullable=False)
-    reps_completed = db.Column(db.Integer, nullable=False)
-    weight_kg = db.Column(db.Float, nullable=False, default=0.0)
-    rpe = db.Column(db.Integer, nullable=True)  # 1-10, opcional
-    notes = db.Column(db.String(200), default="", nullable=False)
+    set_number = Column(Integer, nullable=False)
+    reps_completed = Column(Integer, nullable=False)
+    weight_kg = Column(Float, nullable=False, default=0.0)
+    rpe = Column(Integer, nullable=True)
+    notes = Column(String(200), default="", nullable=False)
+
+    # --- Relaciones -----------------------------------------------------------
+    workout_log = relationship("WorkoutLog", back_populates="sets")
+    exercise = relationship("Exercise", back_populates="workout_sets")
 
     def __repr__(self) -> str:
         return (

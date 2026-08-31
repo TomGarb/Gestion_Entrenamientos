@@ -1,82 +1,47 @@
 """
-Modelo User — Gestión de cuentas de usuario.
-
-Almacena credenciales (hash seguro), preferencia de tema y
-relaciones con rutinas, ejercicios personalizados y entrenamientos.
+Modelo User - Gestión de cuentas de usuario puro SQLAlchemy.
 """
 
 from datetime import datetime, timezone
 
-from werkzeug.security import check_password_hash, generate_password_hash
-from flask_login import UserMixin
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 
-from app import db
+from app.database import Base
 
 
-class User(db.Model, UserMixin):
-    """Representa un usuario registrado en la aplicación."""
-
+class User(Base):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(
-        db.String(80), unique=True, nullable=False, index=True
-    )
-    email = db.Column(
-        db.String(120), unique=True, nullable=False, index=True
-    )
-    password_hash = db.Column(db.String(256), nullable=False)
-    theme_preference = db.Column(
-        db.String(10), default="dark", nullable=False
-    )
-    created_at = db.Column(
-        db.DateTime(timezone=True),
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(80), unique=True, nullable=False, index=True)
+    email = Column(String(120), unique=True, nullable=False, index=True)
+    password_hash = Column(String(256), nullable=False)
+    theme_preference = Column(String(10), default="dark", nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
-    telegram_chat_id = db.Column(db.String(64), unique=True, nullable=True)
-    telegram_sync_token = db.Column(db.String(6), unique=True, nullable=True)
+    telegram_chat_id = Column(String(64), unique=True, nullable=True)
+    telegram_sync_token = Column(String(6), unique=True, nullable=True)
 
     # --- Relaciones -----------------------------------------------------------
-    routines = db.relationship(
+    routines = relationship(
         "Routine",
-        backref="author",
-        lazy="dynamic",
+        back_populates="author",
         cascade="all, delete-orphan",
     )
-    custom_exercises = db.relationship(
+    custom_exercises = relationship(
         "Exercise",
-        backref="creator",
-        lazy="dynamic",
+        back_populates="creator",
         cascade="all, delete-orphan",
     )
-    workout_logs = db.relationship(
+    workout_logs = relationship(
         "WorkoutLog",
-        backref="user",
-        lazy="dynamic",
+        back_populates="user",
         cascade="all, delete-orphan",
     )
-
-    # --- Métodos de contraseña ------------------------------------------------
-
-    def set_password(self, password: str) -> None:
-        """Genera y almacena el hash de la contraseña.
-
-        Args:
-            password: Contraseña en texto plano.
-        """
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password: str) -> bool:
-        """Verifica una contraseña contra el hash almacenado.
-
-        Args:
-            password: Contraseña en texto plano a verificar.
-
-        Returns:
-            True si la contraseña coincide, False en caso contrario.
-        """
-        return check_password_hash(self.password_hash, password)
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"

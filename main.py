@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.database import engine, Base
+from app.models import user, exercise, routine, workout
+
+Base.metadata.create_all(bind=engine)
+
 # Initialize FastAPI app
 app = FastAPI(
     title="GymTracker API",
@@ -27,7 +32,14 @@ app.add_middleware(
 def read_root():
     return {"message": "Bienvenido a la API de GymTracker. El servidor FastAPI está funcionando."}
 
-# TODO: Aquí registraremos los APIRouters (ej. app.include_router(workouts.router))
+from app.api.routers import auth, exercises, routines, workouts, dashboard, telegram
+
+app.include_router(auth.router)
+app.include_router(exercises.router)
+app.include_router(routines.router)
+app.include_router(workouts.router)
+app.include_router(dashboard.router)
+app.include_router(telegram.router)
 
 if __name__ == "__main__":
     import uvicorn
