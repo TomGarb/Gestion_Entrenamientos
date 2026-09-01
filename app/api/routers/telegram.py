@@ -181,6 +181,7 @@ def telegram_polling_thread():
 @router.on_event("startup")
 def start_telegram_polling():
     # Iniciar el hilo de polling cuando arranque FastAPI
-    thread = threading.Thread(target=telegram_polling_thread, daemon=True)
-    thread.start()
-    print("🤖 Telegram Bot Polling iniciado en segundo plano.")
+    bot_thread = threading.Thread(target=telegram_polling_thread)
+    bot_thread.daemon = True
+    bot_thread.start()
+    print("[Telegram] Bot Polling iniciado en segundo plano.")
