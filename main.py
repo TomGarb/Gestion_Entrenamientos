@@ -17,6 +17,7 @@ app = FastAPI(
 origins = [
     "http://localhost:5173",  # Puerto por defecto de Vite (React)
     "http://127.0.0.1:5173",
+    "https://gym-tracker-app-murex.vercel.app",  # Producción en Vercel
 ]
 
 app.add_middleware(
