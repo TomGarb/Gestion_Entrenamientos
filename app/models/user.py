@@ -2,6 +2,7 @@
 Modelo User - Gestión de cuentas de usuario puro SQLAlchemy.
 """
 
+import bcrypt
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, DateTime, Float
@@ -50,3 +51,12 @@ class User(Base):
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
+
+    def set_password(self, password: str):
+        self.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    def check_password(self, password: str) -> bool:
+        try:
+            return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+        except ValueError:
+            return False

@@ -17,12 +17,12 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="El usuario o email ya existe")
     
-    hashed_password = get_password_hash(user.password)
     new_user = User(
         username=user.username,
-        email=user.email,
-        password_hash=hashed_password
+        email=user.email
     )
+    new_user.set_password(user.password)
+    
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -42,11 +42,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             headers={"WWW-Authenticate": "Bearer"},
         )
         
-    try:
-        is_valid = verify_password(form_data.password, user.password_hash)
-    except ValueError:
-        # Si arroja ValueError, probablemente sea un hash legacy de werkzeug (pbkdf2:sha256)
-        is_valid = False
+    is_valid = user.check_password(form_data.password)
         
     if not is_valid:
         raise HTTPException(
@@ -87,9 +83,9 @@ def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_us
 
 @router.put("/me/password")
 def update_password(pass_update: UserPasswordUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if not verify_password(pass_update.current_password, current_user.password_hash):
+    if not current_user.check_password(pass_update.current_password):
         raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta")
         
-    current_user.password_hash = get_password_hash(pass_update.new_password)
+    current_user.set_password(pass_update.new_password)
     db.commit()
     return {"status": "success", "message": "Contraseña actualizada"}
