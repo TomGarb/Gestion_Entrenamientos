@@ -3,3 +3,7 @@ uvicorn==0.34.0
 pydantic==2.10.4
 SQLAlchemy==2.0.36
 pyTelegramBotAPI==4.36.0
+psycopg2-binary>=2.9.0
+python-dotenv>=1.0.0
+bcrypt>=4.0.0
+PyJWT>=2.8.0
