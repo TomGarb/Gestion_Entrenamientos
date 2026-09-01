@@ -30,12 +30,28 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # OAuth2PasswordRequestForm espera 'username' (que puede ser el email o usuario) y 'password'
-    user = db.query(User).filter(User.username == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.password_hash):
+    # Permitir login con username o email
+    user = db.query(User).filter(
+        (User.username == form_data.username) | (User.email == form_data.username)
+    ).first()
+    
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales incorrectas",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    try:
+        is_valid = verify_password(form_data.password, user.password_hash)
+    except ValueError:
+        # Si arroja ValueError, probablemente sea un hash legacy de werkzeug (pbkdf2:sha256)
+        is_valid = False
+        
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales incorrectas (o tu contraseña expiro en la migración, por favor crea una nueva cuenta)",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

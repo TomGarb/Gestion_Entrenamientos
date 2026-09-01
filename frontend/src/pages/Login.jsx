@@ -26,7 +26,13 @@ const Login = () => {
       }
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Error de autenticación');
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        // Si es un error de validación de FastAPI (Pydantic), extraemos el primer mensaje
+        setError(detail[0].msg || 'Error de validación en los datos ingresados');
+      } else {
+        setError(detail || 'Error de autenticación. Verifica tus datos o conexión.');
+      }
     }
   };
 
