@@ -11,9 +11,22 @@ class UserResponse(BaseModel):
     username: str
     email: str
     theme_preference: str
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
 
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
+
+class UserPasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
 
 class Token(BaseModel):
     access_token: str

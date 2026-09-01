@@ -4,7 +4,7 @@ Modelo User - Gestión de cuentas de usuario puro SQLAlchemy.
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Float
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -25,6 +25,11 @@ class User(Base):
     )
     telegram_chat_id = Column(String(64), unique=True, nullable=True)
     telegram_sync_token = Column(String(6), unique=True, nullable=True)
+
+    # Physical Attributes
+    height_cm = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
+    target_weight_kg = Column(Float, nullable=True)
 
     # --- Relaciones -----------------------------------------------------------
     routines = relationship(

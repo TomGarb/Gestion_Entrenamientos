@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getDashboardStats } from '../services/dashboardService';
 
+// --- Paleta "Hierro y Sudor" ---
 const colors = {
-  background: '#0A1128',
-  cardBg: '#121F3D',
-  borderLine: '#1E325C',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#8B9BB4',
-  accentRed: '#D90429',
-  successGreen: '#20BF55'
+  background: '#1C1C1E',
+  cardBg: '#2C2C2E',
+  borderLine: '#3A3A3C',
+  textPrimary: '#F2F2F7',
+  textSecondary: '#AEAEB2',
+  accentRed: '#FFD60A',
+  successGreen: '#32D74B'
 };
 
 const Dashboard = () => {
@@ -42,7 +43,10 @@ const Dashboard = () => {
     <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem' }}>
       <header style={{ marginBottom: '3rem' }}>
         <h1 style={{ margin: 0, fontSize: '2rem', color: colors.textPrimary }}>Panel de Control</h1>
-        <p style={{ color: colors.textSecondary, marginTop: '0.5rem', fontSize: '1.1rem' }}>Tus métricas en tiempo real</p>
+        <p style={{ color: colors.textSecondary, marginTop: '0.5rem', fontSize: '1.1rem', lineHeight: '1.5', maxWidth: '800px' }}>
+          Bienvenido a GymTracker. Este es tu centro de mando. Aquí visualizarás tu progreso, el peso total levantado y tu consistencia.<br/><br/>
+          💡 <strong>¿Eres nuevo?</strong> Dirígete a <strong>Ejercicios</strong> para revisar el catálogo y luego crea tu primera plantilla en <strong>Rutinas</strong>. Cuando estés listo para sudar, presiona <strong>Entrenar</strong>.
+        </p>
       </header>
       
       <div style={{ 

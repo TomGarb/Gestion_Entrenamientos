@@ -4,16 +4,15 @@ import { startWorkout, addSet, removeSet, finishWorkout } from '../services/work
 import { getExercises } from '../services/exerciseService';
 import { getRoutines } from '../services/routineService';
 
-// --- Paleta "Energía y Potencia" ---
+// --- Paleta "Hierro y Sudor" ---
 const colors = {
-  background: '#0A1128',
-  cardBg: '#121F3D',
-  borderLine: '#1E325C',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#8B9BB4',
-  accentRed: '#D90429',
-  accentRedHover: '#EF233C',
-  successGreen: '#20BF55',
+  background: '#1C1C1E',
+  cardBg: '#2C2C2E',
+  borderLine: '#3A3A3C',
+  textPrimary: '#F2F2F7',
+  textSecondary: '#AEAEB2',
+  accentRed: '#FFD60A',
+  successGreen: '#32D74B',
   grayedOut: 'rgba(255,255,255,0.1)'
 };
 
@@ -130,7 +129,10 @@ const WorkoutSession = () => {
   if (!activeLog) {
     return (
       <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <h1 style={{ marginBottom: '3rem' }}>¿Qué vamos a entrenar hoy?</h1>
+        <h1 style={{ marginBottom: '1rem', textAlign: 'center' }}>¿Qué vamos a entrenar hoy?</h1>
+        <p style={{ color: colors.textSecondary, marginBottom: '3rem', maxWidth: '600px', textAlign: 'center', lineHeight: '1.5', fontSize: '1.1rem' }}>
+          Elige <strong>Entrenamiento Libre</strong> si quieres improvisar y añadir ejercicios sobre la marcha. Si prefieres seguir un plan, selecciona una de tus <strong>Rutinas</strong> guardadas para cargar los ejercicios automáticamente.
+        </p>
         
         <button 
           onClick={() => handleStartWorkout(null)}

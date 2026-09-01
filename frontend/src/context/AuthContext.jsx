@@ -6,18 +6,29 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [loading, setLoading] = useState(true);
+
+  const fetchUser = async () => {
+    try {
+      const response = await api.get('/api/auth/me');
+      setUser({ ...response.data, isAuthenticated: true });
+    } catch (error) {
+      console.error("Token inválido o expirado");
+      logout();
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    // Si hay token, configuramos el header por defecto para axios
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       localStorage.setItem('token', token);
-      // Aquí normalmente harías un fetch a /api/users/me para validar el token y setear el usuario
-      setUser({ isAuthenticated: true });
+      fetchUser();
     } else {
       delete api.defaults.headers.common['Authorization'];
       localStorage.removeItem('token');
       setUser(null);
+      setLoading(false);
     }
   }, [token]);
 
@@ -39,12 +50,26 @@ export const AuthProvider = ({ children }) => {
     await login(username, password);
   };
 
+  const updateProfile = async (userData) => {
+    const response = await api.put('/api/auth/me', userData);
+    setUser({ ...response.data, isAuthenticated: true });
+  };
+
+  const updatePassword = async (currentPassword, newPassword) => {
+    await api.put('/api/auth/me/password', { 
+      current_password: currentPassword, 
+      new_password: newPassword 
+    });
+  };
+
   const logout = () => {
     setToken(null);
   };
 
+  if (loading) return null; // Wait for initial user fetch
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { getRoutines, createRoutine, deleteRoutine } from '../services/routineService';
 import { getExercises } from '../services/exerciseService';
 
-// --- Paleta "Energía y Potencia" ---
+// --- Paleta "Hierro y Sudor" ---
 const colors = {
-  background: '#0A1128', // Fondo azul marino súper oscuro
-  cardBg: '#121F3D',     // Contenedores secundarios
-  borderLine: '#1E325C', // Bordes sutiles
-  textPrimary: '#FFFFFF',
-  textSecondary: '#8B9BB4',
-  accentRed: '#D90429',  // Rojo vibrante
-  accentRedHover: '#EF233C',
-  successGreen: '#20BF55'
+  background: '#1C1C1E',
+  cardBg: '#2C2C2E',
+  borderLine: '#3A3A3C',
+  textPrimary: '#F2F2F7',
+  textSecondary: '#AEAEB2',
+  accentRed: '#FFD60A',
+  accentRedHover: '#FFD60A',
+  successGreen: '#32D74B'
 };
 
 const Routines = () => {
@@ -109,11 +109,16 @@ const Routines = () => {
   return (
     <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem' }}>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-        <h1 style={{ margin: 0, color: colors.textPrimary }}>Mis Rutinas</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ maxWidth: '700px' }}>
+          <h1 style={{ margin: 0, color: colors.textPrimary, marginBottom: '0.5rem' }}>Mis Rutinas</h1>
+          <p style={{ margin: 0, color: colors.textSecondary, fontSize: '1rem', lineHeight: '1.5' }}>
+            Las rutinas son tus plantillas de entrenamiento (ej. "Día de Piernas" o "Full Body"). Agrupa tus ejercicios aquí para que, al momento de ir al gimnasio, tu plan ya esté estructurado y solo tengas que anotar los pesos.
+          </p>
+        </div>
         <button 
           onClick={() => setShowModal(true)}
-          style={{ padding: '0.75rem 1.5rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', boxShadow: `0 4px 10px rgba(217, 4, 41, 0.4)` }}
+          style={{ padding: '0.75rem 1.5rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', boxShadow: `0 4px 10px rgba(217, 4, 41, 0.4)`, whiteSpace: 'nowrap' }}
         >
           + Nueva Rutina
         </button>

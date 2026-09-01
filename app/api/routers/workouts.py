@@ -88,7 +88,8 @@ def finish_workout(log_id: int, db: Session = Depends(get_db), current_user: Use
         return log
         
     # Calcular duración
-    now = datetime.now(timezone.utc)
+    # Removemos el tzinfo de 'now' porque SQLite (por defecto) devuelve datetimes offset-naive
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     delta = now - log.created_at
     duration_mins = int(delta.total_seconds() / 60)
     

@@ -13,20 +13,20 @@ const MainLayout = () => {
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif' }}>
-      <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', backgroundColor: '#1e1e1e', color: 'white' }}>
-        <div style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-          <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>🏋️ GymTracker</Link>
+      <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem', backgroundColor: '#1C1C1E', borderBottom: '2px solid #3A3A3C', color: '#F2F2F7' }}>
+        <div style={{ fontWeight: '900', fontSize: '1.4rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          <Link to="/" style={{ color: '#FFD60A', textDecoration: 'none' }}>GYMTRACKER</Link>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Link to="/" style={{ color: '#4da3ff', textDecoration: 'none' }}>Dashboard</Link>
-          <Link to="/exercises" style={{ color: '#4da3ff', textDecoration: 'none' }}>Ejercicios</Link>
-          <Link to="/routines" style={{ color: '#4da3ff', textDecoration: 'none' }}>Rutinas</Link>
-          <Link to="/workout" style={{ color: '#20BF55', textDecoration: 'none', fontWeight: 'bold' }}>💪 Entrenar</Link>
-          <Link to="/settings" style={{ color: '#4da3ff', textDecoration: 'none' }}>Configuración</Link>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>
+          <Link to="/" style={{ color: '#AEAEB2', textDecoration: 'none' }}>Dashboard</Link>
+          <Link to="/exercises" style={{ color: '#AEAEB2', textDecoration: 'none' }}>Ejercicios</Link>
+          <Link to="/routines" style={{ color: '#AEAEB2', textDecoration: 'none' }}>Rutinas</Link>
+          <Link to="/workout" style={{ color: '#1C1C1E', backgroundColor: '#FFD60A', padding: '0.4rem 0.8rem', borderRadius: '4px', textDecoration: 'none' }}>ENTRENAR</Link>
+          <Link to="/settings" style={{ color: '#AEAEB2', textDecoration: 'none' }}>Config</Link>
           <button 
             onClick={handleLogout} 
-            style={{ background: 'transparent', border: 'none', color: '#ff4d4d', cursor: 'pointer' }}>
-            Cerrar Sesión
+            style={{ background: 'transparent', border: 'none', color: '#FF453A', cursor: 'pointer', fontWeight: 'bold', textTransform: 'uppercase' }}>
+            Salir
           </button>
         </div>
       </nav>
