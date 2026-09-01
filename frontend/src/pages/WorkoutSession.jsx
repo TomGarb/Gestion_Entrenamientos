@@ -4,16 +4,22 @@ import { startWorkout, addSet, removeSet, finishWorkout } from '../services/work
 import { getExercises } from '../services/exerciseService';
 import { getRoutines } from '../services/routineService';
 
-// --- Paleta "Hierro y Sudor" ---
+// --- Paleta "Soft Fitness" ---
 const colors = {
-  background: '#1C1C1E',
-  cardBg: '#2C2C2E',
-  borderLine: '#3A3A3C',
-  textPrimary: '#F2F2F7',
-  textSecondary: '#AEAEB2',
-  accentRed: '#FFD60A',
-  successGreen: '#32D74B',
-  grayedOut: 'rgba(255,255,255,0.1)'
+  background: 'var(--bg-primary)',
+  cardBg: 'var(--bg-card)',
+  textPrimary: 'var(--text-primary)',
+  textSecondary: 'var(--text-secondary)',
+  mintGradient: 'var(--mint-gradient)',
+  dangerGradient: 'var(--danger-gradient)',
+  cardShadow: 'var(--shadow-card)',
+  borderLine: 'var(--border-line)',
+  peachLight: 'var(--peach-light)',
+  peachText: 'var(--peach-text)',
+  accentRed: 'var(--mint-gradient)',
+  successGreen: 'var(--mint-gradient)',
+  danger: 'var(--danger)',
+  inputBg: 'var(--bg-input)'
 };
 
 const WorkoutSession = () => {

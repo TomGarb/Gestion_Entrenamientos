@@ -26,6 +26,12 @@ class WorkoutLogCreate(BaseModel):
     routine_id: Optional[int] = None
     notes: Optional[str] = ""
 
+class RoutineSimpleResponse(BaseModel):
+    id: int
+    name: str
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class WorkoutLogResponse(BaseModel):
     id: int
     user_id: int
@@ -36,5 +42,6 @@ class WorkoutLogResponse(BaseModel):
     notes: str
     created_at: datetime
     sets: List[WorkoutSetResponse] = []
+    routine: Optional[RoutineSimpleResponse] = None
     
     model_config = ConfigDict(from_attributes=True)

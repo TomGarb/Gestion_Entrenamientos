@@ -13,6 +13,17 @@ from app.models.user import User
 
 router = APIRouter(prefix="/api/workouts", tags=["workouts"])
 
+@router.get("/history", response_model=List[WorkoutLogResponse])
+def get_workout_history(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    logs = (
+        db.query(WorkoutLog)
+        .options(joinedload(WorkoutLog.sets).joinedload(WorkoutSet.exercise), joinedload(WorkoutLog.routine))
+        .filter(WorkoutLog.user_id == current_user.id, WorkoutLog.status == "completed")
+        .order_by(WorkoutLog.created_at.desc())
+        .all()
+    )
+    return logs
+
 @router.post("/start", response_model=WorkoutLogResponse)
 def start_workout(log_in: WorkoutLogCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_log = WorkoutLog(

@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getDashboardStats } from '../services/dashboardService';
 
-// --- Paleta "Hierro y Sudor" ---
+// --- Paleta "Soft Fitness" ---
+// --- Paleta "Soft Fitness" ---
 const colors = {
-  background: '#1C1C1E',
-  cardBg: '#2C2C2E',
-  borderLine: '#3A3A3C',
-  textPrimary: '#F2F2F7',
-  textSecondary: '#AEAEB2',
-  accentRed: '#FFD60A',
-  successGreen: '#32D74B'
+  background: 'var(--bg-primary)',
+  cardBg: 'var(--bg-card)',
+  textPrimary: 'var(--text-primary)',
+  textSecondary: 'var(--text-secondary)',
+  mintGradient: 'var(--mint-gradient)',
+  dangerGradient: 'var(--danger-gradient)',
+  cardShadow: 'var(--shadow-card)',
+  borderLine: 'var(--border-line)',
+  peachLight: 'var(--peach-light)',
+  peachText: 'var(--peach-text)',
+  accentRed: 'var(--mint-gradient)',
+  successGreen: 'var(--mint-gradient)',
+  danger: 'var(--danger)',
+  inputBg: 'var(--bg-input)'
 };
 
 const Dashboard = () => {
@@ -56,15 +65,18 @@ const Dashboard = () => {
         marginBottom: '3rem'
       }}>
         {/* Tarjeta: Entrenamientos Recientes */}
-        <div style={cardStyle}>
-          <h3 style={{ margin: '0 0 1rem 0', color: colors.textSecondary, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Últimos 7 Días
-          </h3>
-          <p style={{ fontSize: '3rem', fontWeight: 'bold', margin: 0, color: colors.successGreen }}>
-            {stats?.recent_workouts || 0}
-          </p>
-          <p style={{ color: colors.textSecondary, fontSize: '0.9rem', marginTop: '0.5rem' }}>sesiones completadas</p>
-        </div>
+        <Link to="/history" style={{ textDecoration: 'none' }}>
+          <div style={{...cardStyle, cursor: 'pointer'}} title="Ver mi historial de entrenamientos">
+            <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Últimos 7 Días
+            </h3>
+            <p style={{ fontSize: '3rem', fontWeight: 'bold', margin: 0, color: 'var(--successGreen)' }}>
+              {stats?.recent_workouts || 0}
+            </p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>sesiones completadas</p>
+            <p style={{ color: 'var(--peach-text)', fontSize: '0.85rem', fontWeight: 'bold', marginTop: '1rem', textDecoration: 'none' }}>Ver historial completo ➡️</p>
+          </div>
+        </Link>
 
         {/* Tarjeta: Volumen del Mes */}
         <div style={cardStyle}>

@@ -7,6 +7,7 @@ import Exercises from './pages/Exercises';
 import Routines from './pages/Routines';
 import WorkoutSession from './pages/WorkoutSession';
 import Settings from './pages/Settings';
+import History from './pages/History';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
 // Componente para proteger rutas
@@ -38,6 +39,7 @@ function App() {
             <Route path="routines" element={<Routines />} />
             <Route path="workout" element={<WorkoutSession />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="history" element={<History />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -19,3 +19,8 @@ export const finishWorkout = async (logId) => {
   const response = await api.put(`/api/workouts/${logId}/finish`);
   return response.data;
 };
+
+export const getWorkoutHistory = async () => {
+  const response = await api.get('/api/workouts/history');
+  return response.data;
+};

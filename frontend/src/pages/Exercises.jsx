@@ -47,18 +47,23 @@ const Exercises = () => {
     }
   };
 
-  // --- Paleta "Hierro y Sudor" ---
+  // --- Paleta "Soft Fitness" ---
   const colors = {
-    background: '#1C1C1E',
-    cardBg: '#2C2C2E',
-    borderLine: '#3A3A3C',
-    textPrimary: '#F2F2F7',
-    textSecondary: '#AEAEB2',
-    accentRed: '#FFD60A',
-    accentRedHover: '#E5C008',
-    successGreen: '#32D74B',
-    danger: '#FF453A'
-  };
+  background: 'var(--bg-primary)',
+  cardBg: 'var(--bg-card)',
+  textPrimary: 'var(--text-primary)',
+  textSecondary: 'var(--text-secondary)',
+  mintGradient: 'var(--mint-gradient)',
+  dangerGradient: 'var(--danger-gradient)',
+  cardShadow: 'var(--shadow-card)',
+  borderLine: 'var(--border-line)',
+  peachLight: 'var(--peach-light)',
+  peachText: 'var(--peach-text)',
+  accentRed: 'var(--mint-gradient)',
+  successGreen: 'var(--mint-gradient)',
+  danger: 'var(--danger)',
+  inputBg: 'var(--bg-input)'
+};
 
   return (
     <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem' }}>

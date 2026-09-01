@@ -4,14 +4,20 @@ import { getExercises } from '../services/exerciseService';
 
 // --- Paleta "Hierro y Sudor" ---
 const colors = {
-  background: '#1C1C1E',
-  cardBg: '#2C2C2E',
-  borderLine: '#3A3A3C',
-  textPrimary: '#F2F2F7',
-  textSecondary: '#AEAEB2',
-  accentRed: '#FFD60A',
-  accentRedHover: '#FFD60A',
-  successGreen: '#32D74B'
+  background: 'var(--bg-primary)',
+  cardBg: 'var(--bg-card)',
+  textPrimary: 'var(--text-primary)',
+  textSecondary: 'var(--text-secondary)',
+  mintGradient: 'var(--mint-gradient)',
+  dangerGradient: 'var(--danger-gradient)',
+  cardShadow: 'var(--shadow-card)',
+  borderLine: 'var(--border-line)',
+  peachLight: 'var(--peach-light)',
+  peachText: 'var(--peach-text)',
+  accentRed: 'var(--mint-gradient)',
+  successGreen: 'var(--mint-gradient)',
+  danger: 'var(--danger)',
+  inputBg: 'var(--bg-input)'
 };
 
 const Routines = () => {
@@ -106,43 +112,60 @@ const Routines = () => {
     }
   };
 
+  // --- Paleta "Soft Fitness" ---
+  const colors = {
+  background: 'var(--bg-primary)',
+  cardBg: 'var(--bg-card)',
+  textPrimary: 'var(--text-primary)',
+  textSecondary: 'var(--text-secondary)',
+  mintGradient: 'var(--mint-gradient)',
+  dangerGradient: 'var(--danger-gradient)',
+  cardShadow: 'var(--shadow-card)',
+  borderLine: 'var(--border-line)',
+  peachLight: 'var(--peach-light)',
+  peachText: 'var(--peach-text)',
+  accentRed: 'var(--mint-gradient)',
+  successGreen: 'var(--mint-gradient)',
+  danger: 'var(--danger)',
+  inputBg: 'var(--bg-input)'
+};
+
   return (
-    <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem' }}>
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem', fontFamily: 'Poppins, sans-serif' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ maxWidth: '700px' }}>
-          <h1 style={{ margin: 0, color: colors.textPrimary, marginBottom: '0.5rem' }}>Mis Rutinas</h1>
-          <p style={{ margin: 0, color: colors.textSecondary, fontSize: '1rem', lineHeight: '1.5' }}>
+          <h1 style={{ margin: 0, color: colors.textPrimary, marginBottom: '0.5rem', fontWeight: '700', fontSize: '2.5rem' }}>Mis Rutinas</h1>
+          <p style={{ margin: 0, color: colors.textSecondary, fontSize: '1.1rem', lineHeight: '1.6' }}>
             Las rutinas son tus plantillas de entrenamiento (ej. "Día de Piernas" o "Full Body"). Agrupa tus ejercicios aquí para que, al momento de ir al gimnasio, tu plan ya esté estructurado y solo tengas que anotar los pesos.
           </p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          style={{ padding: '0.75rem 1.5rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', boxShadow: `0 4px 10px rgba(217, 4, 41, 0.4)`, whiteSpace: 'nowrap' }}
+          style={{ padding: '0.75rem 1.8rem', background: colors.mintGradient, color: '#FFFFFF', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', boxShadow: '0 10px 20px rgba(74, 222, 128, 0.2)', whiteSpace: 'nowrap' }}
         >
           + Nueva Rutina
         </button>
       </div>
 
       {/* Grid de Rutinas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2.5rem' }}>
         {routines.map(routine => (
-          <div key={routine.id} style={{ borderRadius: '12px', padding: '1.5rem', backgroundColor: colors.cardBg, border: `1px solid ${colors.borderLine}`, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', position: 'relative' }}>
-            <h2 style={{ marginTop: 0, marginBottom: '0.5rem', color: colors.textPrimary, fontSize: '1.5rem' }}>{routine.name}</h2>
-            <p style={{ color: colors.textSecondary, fontSize: '0.9rem', marginBottom: '1.5rem' }}>{routine.description || "Sin descripción"}</p>
+          <div key={routine.id} style={{ borderRadius: '24px', padding: '2rem', backgroundColor: colors.cardBg, border: 'none', boxShadow: colors.cardShadow, position: 'relative' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '0.5rem', color: colors.textPrimary, fontSize: '1.6rem', fontWeight: '700' }}>{routine.name}</h2>
+            <p style={{ color: colors.textSecondary, fontSize: '0.95rem', marginBottom: '2rem', lineHeight: '1.5' }}>{routine.description || "Sin descripción"}</p>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {routine.routine_exercises.map((rx, idx) => (
-                <div key={rx.id} style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '8px' }}>
-                  <span style={{ fontWeight: '600', color: '#E2E8F0' }}>{idx + 1}. {rx.exercise?.name || 'Ejercicio'}</span>
-                  <span style={{ color: colors.accentRed, fontWeight: 'bold' }}>{rx.sets}x{rx.reps}</span>
+                <div key={rx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '1rem', borderRadius: '16px' }}>
+                  <span style={{ fontWeight: '600', color: colors.textPrimary, fontSize: '0.95rem' }}>{idx + 1}. {rx.exercise?.name || 'Ejercicio'}</span>
+                  <span style={{ color: colors.peachText, backgroundColor: colors.peachLight, padding: '0.3rem 0.8rem', borderRadius: '9999px', fontWeight: '700', fontSize: '0.85rem' }}>{rx.sets}x{rx.reps}</span>
                 </div>
               ))}
             </div>
 
             <button 
               onClick={() => handleDelete(routine.id)}
-              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'transparent', border: 'none', color: colors.accentRed, cursor: 'pointer', fontSize: '1.2rem', padding: '0' }}
+              style={{ position: 'absolute', top: '2rem', right: '1.5rem', background: 'transparent', border: 'none', color: '#CBD5E1', cursor: 'pointer', fontSize: '1.2rem', padding: '0' }}
               title="Eliminar Rutina"
             >
               🗑️
@@ -154,34 +177,34 @@ const Routines = () => {
 
       {/* Modal / Formulario Lateral */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(10, 17, 40, 0.9)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' }}>
-          <div style={{ background: colors.cardBg, color: 'white', padding: '2.5rem', borderRadius: '16px', width: '90%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto', border: `1px solid ${colors.borderLine}`, boxShadow: '0 20px 50px rgba(0,0,0,0.6)' }}>
-            <h2 style={{ marginTop: 0, color: colors.textPrimary, marginBottom: '2rem' }}>Crear Nueva Rutina</h2>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
+          <div style={{ background: colors.cardBg, color: colors.textPrimary, padding: '3rem', borderRadius: '30px', width: '90%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto', border: 'none', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)' }}>
+            <h2 style={{ marginTop: 0, color: colors.textPrimary, marginBottom: '2rem', fontWeight: '700', fontSize: '2rem' }}>Crear Nueva Rutina</h2>
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Datos Básicos */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                 <input name="name" value={formData.name} onChange={handleFormChange} placeholder="Nombre de la Rutina (ej. Push Day)" required style={inputStyle} />
-                <textarea name="description" value={formData.description} onChange={handleFormChange} placeholder="Descripción o enfoque" style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }} />
+                <textarea name="description" value={formData.description} onChange={handleFormChange} placeholder="Descripción o enfoque" style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} />
               </div>
 
               {/* Constructor de Ejercicios */}
-              <div style={{ borderTop: `1px solid ${colors.borderLine}`, paddingTop: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Ejercicios</h3>
-                  <button type="button" onClick={addExerciseRow} style={{ padding: '0.5rem 1rem', background: 'rgba(217, 4, 41, 0.1)', color: colors.accentRed, border: `1px solid ${colors.accentRed}`, borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+              <div style={{ borderTop: `1px solid ${colors.borderLine}`, paddingTop: '2rem', marginTop: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '600' }}>Ejercicios</h3>
+                  <button type="button" onClick={addExerciseRow} style={{ padding: '0.6rem 1.2rem', background: '#F0FDF4', color: '#16A34A', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' }}>
                     + Agregar Ejercicio
                   </button>
                 </div>
 
                 {routineExercises.length === 0 ? (
-                  <p style={{ color: colors.textSecondary, fontStyle: 'italic', textAlign: 'center', padding: '1rem' }}>Añade ejercicios para comenzar.</p>
+                  <p style={{ color: colors.textSecondary, fontStyle: 'italic', textAlign: 'center', padding: '2rem', background: '#F8FAFC', borderRadius: '16px' }}>Añade ejercicios para comenzar.</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {routineExercises.map((row, index) => (
-                      <div key={index} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px' }}>
+                      <div key={index} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: '#F8FAFC', padding: '1rem', borderRadius: '16px' }}>
                         
-                        <select required value={row.exercise_id} onChange={(e) => handleRoutineExerciseChange(index, 'exercise_id', e.target.value)} style={{ ...inputStyle, flex: 2 }}>
+                        <select required value={row.exercise_id} onChange={(e) => handleRoutineExerciseChange(index, 'exercise_id', e.target.value)} style={{ ...inputStyle, flex: 2, background: '#FFFFFF' }}>
                           <option value="">Seleccionar Ejercicio...</option>
                           {exercisesCatalog.map(ex => (
                             <option key={ex.id} value={ex.id}>{ex.name} ({ex.muscle_group})</option>
@@ -189,13 +212,13 @@ const Routines = () => {
                         </select>
                         
                         <div style={{ display: 'flex', gap: '0.5rem', flex: 1 }}>
-                          <input type="number" required min="1" value={row.sets} onChange={(e) => handleRoutineExerciseChange(index, 'sets', e.target.value)} placeholder="Series" title="Series" style={{ ...inputStyle, width: '100%', textAlign: 'center' }} />
-                          <span style={{ display: 'flex', alignItems: 'center', color: colors.textSecondary }}>x</span>
-                          <input type="number" required min="1" value={row.reps} onChange={(e) => handleRoutineExerciseChange(index, 'reps', e.target.value)} placeholder="Reps" title="Repeticiones" style={{ ...inputStyle, width: '100%', textAlign: 'center' }} />
+                          <input type="number" required min="1" value={row.sets} onChange={(e) => handleRoutineExerciseChange(index, 'sets', e.target.value)} placeholder="Series" title="Series" style={{ ...inputStyle, width: '100%', textAlign: 'center', background: '#FFFFFF' }} />
+                          <span style={{ display: 'flex', alignItems: 'center', color: colors.textSecondary, fontWeight: '600' }}>x</span>
+                          <input type="number" required min="1" value={row.reps} onChange={(e) => handleRoutineExerciseChange(index, 'reps', e.target.value)} placeholder="Reps" title="Repeticiones" style={{ ...inputStyle, width: '100%', textAlign: 'center', background: '#FFFFFF' }} />
                         </div>
                         
-                        <button type="button" onClick={() => removeExerciseRow(index)} style={{ background: 'transparent', border: 'none', color: colors.textSecondary, cursor: 'pointer', fontSize: '1.2rem' }}>
-                          ✕
+                        <button type="button" onClick={() => removeExerciseRow(index)} style={{ background: 'transparent', border: 'none', color: '#F43F5E', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}>
+                          ✕ 
                         </button>
                       </div>
                     ))}
@@ -204,9 +227,9 @@ const Routines = () => {
               </div>
 
               {/* Botones de Acción */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', borderTop: `1px solid ${colors.borderLine}`, paddingTop: '1.5rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'none', color: colors.textSecondary, cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>Cancelar</button>
-                <button type="submit" style={{ padding: '0.75rem 2rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}>Guardar Rutina</button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2.5rem' }}>
+                <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'none', color: colors.textSecondary, cursor: 'pointer', fontSize: '1rem', fontWeight: '600' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.8rem 2.5rem', background: colors.mintGradient, color: 'white', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', boxShadow: '0 10px 20px rgba(74, 222, 128, 0.2)' }}>Guardar Rutina</button>
               </div>
             </form>
           </div>
@@ -217,12 +240,14 @@ const Routines = () => {
 };
 
 const inputStyle = {
-  padding: '0.9rem',
-  borderRadius: '6px',
-  border: `1px solid #1E325C`,
-  background: '#0A1128',
-  color: 'white',
+  padding: '1rem',
+  borderRadius: '12px',
+  border: `1px solid #E2E8F0`,
+  background: '#F8FAFC',
+  color: '#334155',
   fontSize: '1rem',
+  outline: 'none',
+  fontFamily: 'Poppins, sans-serif'
 };
 
 export default Routines;
