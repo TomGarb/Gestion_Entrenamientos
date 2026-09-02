@@ -53,7 +53,26 @@ button:hover {
   transform: translateY(-2px);
 }
 
-
 a {
   text-decoration: none;
+}
+
+/* 📱 Responsive Mobile Styles */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    padding: 1rem !important;
+    gap: 1rem;
+  }
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem !important;
+  }
+  main {
+    padding: 1rem !important;
+  }
+  .workout-card {
+    grid-template-columns: 1fr !important;
+  }
 }
