@@ -106,18 +106,16 @@ const Exercises = () => {
       </div>
 
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(28, 28, 30, 0.9)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: colors.cardBg, color: 'white', padding: '2.5rem', borderRadius: '4px', width: '450px', border: `1px solid ${colors.borderLine}` }}>
-            <h2 style={{ marginTop: 0, color: colors.textPrimary, marginBottom: '2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Añadir Ejercicio</h2>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
+          <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', padding: '2.5rem', borderRadius: '24px', width: '95%', maxWidth: '450px', border: '1px solid var(--border-line)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <h2 style={{ marginTop: 0, color: 'var(--text-primary)', marginBottom: '2rem', fontWeight: '700', fontSize: '1.5rem' }}>Añadir Ejercicio</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
               <input 
                 name="name" value={formData.name} onChange={handleChange} 
                 placeholder="Nombre del Ejercicio" required 
-                style={{ padding: '0.9rem', borderRadius: '4px', border: `1px solid ${colors.borderLine}`, background: colors.background, color: 'white', fontSize: '1rem' }}
               />
               <select 
                 name="muscle_group" value={formData.muscle_group} onChange={handleChange} required 
-                style={{ padding: '0.9rem', borderRadius: '4px', border: `1px solid ${colors.borderLine}`, background: colors.background, color: 'white', fontSize: '1rem' }}
               >
                 <option value="">Selecciona grupo muscular...</option>
                 <option value="pecho">Pecho</option>
@@ -132,11 +130,11 @@ const Exercises = () => {
               <textarea 
                 name="description" value={formData.description} onChange={handleChange} 
                 placeholder="Descripción opcional" 
-                style={{ padding: '0.9rem', borderRadius: '4px', border: `1px solid ${colors.borderLine}`, background: colors.background, color: 'white', minHeight: '100px', fontSize: '1rem', resize: 'vertical' }}
+                style={{ minHeight: '100px', resize: 'vertical' }}
               />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'none', color: colors.textSecondary, cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Cancelar</button>
-                <button type="submit" style={{ padding: '0.75rem 1.5rem', background: colors.accentRed, color: '#1C1C1E', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', textTransform: 'uppercase' }}>Guardar</button>
+                <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', fontWeight: '600' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.8rem 1.5rem', background: 'var(--accent)', color: '#000000', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '1rem' }}>Guardar</button>
               </div>
             </form>
           </div>

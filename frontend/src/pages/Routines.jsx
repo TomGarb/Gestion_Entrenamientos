@@ -194,49 +194,50 @@ const Routines = () => {
 
       {/* Modal / Formulario Lateral */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
-          <div style={{ background: colors.cardBg, color: colors.textPrimary, padding: '3rem', borderRadius: '30px', width: '90%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto', border: 'none', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)' }}>
-            <h2 style={{ marginTop: 0, color: colors.textPrimary, marginBottom: '2rem', fontWeight: '700', fontSize: '2rem' }}>Crear Nueva Rutina</h2>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
+          <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', padding: '2rem', borderRadius: '24px', width: '95%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--border-line)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <h2 style={{ marginTop: 0, color: 'var(--text-primary)', marginBottom: '2rem', fontWeight: '700', fontSize: '1.8rem' }}>Crear Nueva Rutina</h2>
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Datos Básicos */}
+              {/* Datos Básico */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                <input name="name" value={formData.name} onChange={handleFormChange} placeholder="Nombre de la Rutina (ej. Push Day)" required style={inputStyle} />
-                <textarea name="description" value={formData.description} onChange={handleFormChange} placeholder="Descripción o enfoque" style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} />
+                <input name="name" value={formData.name} onChange={handleFormChange} placeholder="Nombre de la Rutina (ej. Push Day)" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-line)', background: 'var(--bg-input)' }} />
+                <textarea name="description" value={formData.description} onChange={handleFormChange} placeholder="Descripción o enfoque" style={{ padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', minHeight: '100px', resize: 'vertical' }} />
               </div>
 
               {/* Constructor de Ejercicios */}
-              <div style={{ borderTop: `1px solid ${colors.borderLine}`, paddingTop: '2rem', marginTop: '1rem' }}>
+              <div style={{ borderTop: '1px solid var(--border-line)', paddingTop: '2rem', marginTop: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '600' }}>Ejercicios</h3>
-                  <button type="button" onClick={addExerciseRow} style={{ padding: '0.6rem 1.2rem', background: '#F0FDF4', color: '#16A34A', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' }}>
-                    + Agregar Ejercicio
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '600' }}>Ejercicios</h3>
+                  <button type="button" onClick={addExerciseRow} style={{ padding: '0.6rem 1.2rem', background: 'rgba(52, 199, 89, 0.15)', color: 'var(--accent)', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' }}>
+                    + Agregar
                   </button>
                 </div>
 
                 {routineExercises.length === 0 ? (
-                  <p style={{ color: colors.textSecondary, fontStyle: 'italic', textAlign: 'center', padding: '2rem', background: '#F8FAFC', borderRadius: '16px' }}>Añade ejercicios para comenzar.</p>
+                  <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center', padding: '2rem', background: 'var(--bg-input)', borderRadius: '16px' }}>Añade ejercicios para comenzar.</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {routineExercises.map((row, index) => (
-                      <div key={index} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: '#F8FAFC', padding: '1rem', borderRadius: '16px' }}>
+                      <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', background: 'var(--bg-input)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-line)' }}>
                         
-                        <select required value={row.exercise_id} onChange={(e) => handleRoutineExerciseChange(index, 'exercise_id', e.target.value)} style={{ ...inputStyle, flex: 2, background: '#FFFFFF' }}>
-                          <option value="">Seleccionar Ejercicio...</option>
-                          {exercisesCatalog.map(ex => (
-                            <option key={ex.id} value={ex.id}>{ex.name} ({ex.muscle_group})</option>
-                          ))}
-                        </select>
-                        
-                        <div style={{ display: 'flex', gap: '0.5rem', flex: 1 }}>
-                          <input type="number" required min="1" value={row.sets} onChange={(e) => handleRoutineExerciseChange(index, 'sets', e.target.value)} placeholder="Series" title="Series" style={{ ...inputStyle, width: '100%', textAlign: 'center', background: '#FFFFFF' }} />
-                          <span style={{ display: 'flex', alignItems: 'center', color: colors.textSecondary, fontWeight: '600' }}>x</span>
-                          <input type="number" required min="1" value={row.reps} onChange={(e) => handleRoutineExerciseChange(index, 'reps', e.target.value)} placeholder="Reps" title="Repeticiones" style={{ ...inputStyle, width: '100%', textAlign: 'center', background: '#FFFFFF' }} />
+                        <div style={{ flex: '1 1 100%' }}>
+                          <select required value={row.exercise_id} onChange={(e) => handleRoutineExerciseChange(index, 'exercise_id', e.target.value)} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-line)' }}>
+                            <option value="">Seleccionar Ejercicio...</option>
+                            {exercisesCatalog.map(ex => (
+                              <option key={ex.id} value={ex.id}>{ex.name} ({ex.muscle_group})</option>
+                            ))}
+                          </select>
                         </div>
                         
-                        <button type="button" onClick={() => removeExerciseRow(index)} style={{ background: 'transparent', border: 'none', color: '#F43F5E', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}>
-                          ✕ 
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto', marginTop: '0.5rem' }}>
+                          <input type="number" min="1" placeholder="Sets" required value={row.sets} onChange={(e) => handleRoutineExerciseChange(index, 'sets', e.target.value)} style={{ width: '80px', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-line)' }} />
+                          <span style={{ color: 'var(--text-secondary)', alignSelf: 'center' }}>x</span>
+                          <input type="number" min="1" placeholder="Reps" required value={row.reps} onChange={(e) => handleRoutineExerciseChange(index, 'reps', e.target.value)} style={{ width: '80px', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-line)' }} />
+                          <button type="button" onClick={() => removeExerciseRow(index)} style={{ background: 'transparent', color: 'var(--danger)', border: 'none', cursor: 'pointer', marginLeft: 'auto', padding: '0.5rem' }}>
+                            🗑️
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -245,8 +246,8 @@ const Routines = () => {
 
               {/* Botones de Acción */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2.5rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'none', color: colors.textSecondary, cursor: 'pointer', fontSize: '1rem', fontWeight: '600' }}>Cancelar</button>
-                <button type="submit" style={{ padding: '0.8rem 2.5rem', background: colors.mintGradient, color: 'white', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', boxShadow: '0 10px 20px rgba(74, 222, 128, 0.2)' }}>Guardar Rutina</button>
+                <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', fontWeight: '600' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.8rem 2.5rem', background: 'var(--accent)', color: '#000000', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '1rem' }}>Guardar Rutina</button>
               </div>
             </form>
           </div>
@@ -254,17 +255,6 @@ const Routines = () => {
       )}
     </div>
   );
-};
-
-const inputStyle = {
-  padding: '1rem',
-  borderRadius: '12px',
-  border: `1px solid #E2E8F0`,
-  background: '#F8FAFC',
-  color: '#334155',
-  fontSize: '1rem',
-  outline: 'none',
-  fontFamily: 'Poppins, sans-serif'
 };
 
 export default Routines;
