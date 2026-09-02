@@ -1,0 +1,21 @@
+{
+  "short_name": "GymTracker",
+  "name": "GymTracker - App de Entrenamientos",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/vite.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F7F9F9",
+  "display": "standalone",
+  "theme_color": "#4ADE80",
+  "orientation": "portrait"
+}
