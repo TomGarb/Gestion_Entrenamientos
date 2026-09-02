@@ -14,3 +14,8 @@ export const deleteRoutine = async (id) => {
   const response = await api.delete(`/api/routines/${id}`);
   return response.data;
 };
+
+export const sendRoutineToTelegram = async (id) => {
+  const response = await api.post(`/api/telegram/send-routine/${id}`);
+  return response.data;
+};

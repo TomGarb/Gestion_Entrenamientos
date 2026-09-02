@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRoutines, createRoutine, deleteRoutine } from '../services/routineService';
+import { getRoutines, createRoutine, deleteRoutine, sendRoutineToTelegram } from '../services/routineService';
 import { getExercises } from '../services/exerciseService';
 
 // --- Paleta "Hierro y Sudor" ---
@@ -112,6 +112,16 @@ const Routines = () => {
     }
   };
 
+  const handleSendToTelegram = async (id) => {
+    try {
+      await sendRoutineToTelegram(id);
+      alert("¡Rutina enviada a Telegram con éxito! Revisa tu chat con el bot.");
+    } catch (e) {
+      console.error(e);
+      alert(e.response?.data?.detail || "Error enviando la rutina a Telegram. Verifica que hayas vinculado tu cuenta.");
+    }
+  };
+
   // --- Paleta "Soft Fitness" ---
   const colors = {
   background: 'var(--bg-primary)',
@@ -154,7 +164,7 @@ const Routines = () => {
             <h2 style={{ marginTop: 0, marginBottom: '0.5rem', color: colors.textPrimary, fontSize: '1.6rem', fontWeight: '700' }}>{routine.name}</h2>
             <p style={{ color: colors.textSecondary, fontSize: '0.95rem', marginBottom: '2rem', lineHeight: '1.5' }}>{routine.description || "Sin descripción"}</p>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
               {routine.routine_exercises.map((rx, idx) => (
                 <div key={rx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '1rem', borderRadius: '16px' }}>
                   <span style={{ fontWeight: '600', color: colors.textPrimary, fontSize: '0.95rem' }}>{idx + 1}. {rx.exercise?.name || 'Ejercicio'}</span>
@@ -162,6 +172,13 @@ const Routines = () => {
                 </div>
               ))}
             </div>
+
+            <button 
+              onClick={() => handleSendToTelegram(routine.id)}
+              style={{ width: '100%', padding: '0.8rem', background: '#E0F2FE', color: '#0284C7', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s ease' }}
+            >
+              ✈️ Enviar a Telegram
+            </button>
 
             <button 
               onClick={() => handleDelete(routine.id)}
