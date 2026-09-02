@@ -1,44 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-primary: #F7F9F9;
+  /* Light theme - Minimal Fallback */
+  --bg-primary: #F4F4F5;
   --bg-card: #FFFFFF;
-  --bg-input: #F8FAFC;
-  --text-primary: #334155;
-  --text-secondary: #94A3B8;
-  --border-line: #E2E8F0;
-  --shadow-card: 0 20px 40px rgba(0, 0, 0, 0.04);
-  --mint-gradient: linear-gradient(135deg, #86EFAC 0%, #4ADE80 100%);
-  --danger-gradient: linear-gradient(135deg, #FDA4AF 0%, #F43F5E 100%);
-  --peach-light: #FFEDD5;
-  --peach-text: #EA580C;
-  --danger: #F43F5E;
+  --bg-input: #F4F4F5;
+  --text-primary: #09090B;
+  --text-secondary: #71717A;
+  --border-line: #E4E4E7;
+  --shadow-card: none;
+  --mint-gradient: #10B981; /* Accent green */
+  --danger-gradient: #EF4444; /* Accent red */
+  --peach-light: #FEE2E2;
+  --peach-text: #EF4444;
+  --danger: #EF4444;
+  --accent: #10B981;
 }
 
 body.dark {
-  --bg-primary: #0F172A;
-  --bg-card: #1E293B;
-  --bg-input: #0F172A;
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --border-line: #334155;
-  --shadow-card: 0 20px 40px rgba(0, 0, 0, 0.3);
-  --mint-gradient: linear-gradient(135deg, #4ADE80 0%, #22C55E 100%);
-  --danger-gradient: linear-gradient(135deg, #F43F5E 0%, #E11D48 100%);
-  --peach-light: rgba(234, 88, 12, 0.2);
-  --peach-text: #FDBA74;
-  --danger: #FB7185;
+  /* Dark theme - Crypto / Deep Analytics Aesthetic */
+  --bg-primary: #000000;
+  --bg-card: #121212;
+  --bg-input: #1C1C1E;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8E8E93;
+  --border-line: #2C2C2E;
+  --shadow-card: none;
+  --mint-gradient: #34C759;
+  --danger-gradient: #FF3B30;
+  --peach-light: rgba(255, 59, 48, 0.15);
+  --peach-text: #FF3B30;
+  --danger: #FF3B30;
+  --accent: #34C759;
 }
 
 body {
   margin: 0;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 * {
@@ -46,31 +49,43 @@ body {
 }
 
 button {
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 button:hover {
-  transform: translateY(-2px);
+  opacity: 0.8;
 }
 
 a {
   text-decoration: none;
 }
 
+/* Base Utility Classes for the New Design */
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-line);
+  border-radius: 20px;
+}
+
 /* 📱 Responsive Mobile Styles */
+
+/* Desktop Top Nav hiding on mobile */
+.desktop-nav {
+  display: flex;
+}
+.mobile-nav {
+  display: none;
+}
+
 @media (max-width: 768px) {
-  nav {
-    flex-direction: column;
-    padding: 1rem !important;
-    gap: 1rem;
+  .desktop-nav {
+    display: none !important;
   }
-  .nav-links {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem !important;
+  .mobile-nav {
+    display: flex !important;
   }
   main {
-    padding: 1rem !important;
+    padding: 1rem 1rem 100px 1rem !important; /* padding bottom for bottom nav */
   }
   .workout-card {
     grid-template-columns: 1fr !important;

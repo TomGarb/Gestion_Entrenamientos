@@ -2,25 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getDashboardStats } from '../services/dashboardService';
 
-// --- Paleta "Soft Fitness" ---
-// --- Paleta "Soft Fitness" ---
-const colors = {
-  background: 'var(--bg-primary)',
-  cardBg: 'var(--bg-card)',
-  textPrimary: 'var(--text-primary)',
-  textSecondary: 'var(--text-secondary)',
-  mintGradient: 'var(--mint-gradient)',
-  dangerGradient: 'var(--danger-gradient)',
-  cardShadow: 'var(--shadow-card)',
-  borderLine: 'var(--border-line)',
-  peachLight: 'var(--peach-light)',
-  peachText: 'var(--peach-text)',
-  accentRed: 'var(--mint-gradient)',
-  successGreen: 'var(--mint-gradient)',
-  danger: 'var(--danger)',
-  inputBg: 'var(--bg-input)'
-};
-
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,87 +23,112 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2>Cargando métricas...</h2>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <h2 style={{ color: 'var(--text-secondary)' }}>Loading analytics...</h2>
       </div>
     );
   }
 
   return (
-    <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem' }}>
-      <header style={{ marginBottom: '3rem' }}>
-        <h1 style={{ margin: 0, fontSize: '2rem', color: colors.textPrimary }}>Panel de Control</h1>
-        <p style={{ color: colors.textSecondary, marginTop: '0.5rem', fontSize: '1.1rem', lineHeight: '1.5', maxWidth: '800px' }}>
-          Bienvenido a GymTracker. Este es tu centro de mando. Aquí visualizarás tu progreso, el peso total levantado y tu consistencia.<br/><br/>
-          💡 <strong>¿Eres nuevo?</strong> Dirígete a <strong>Ejercicios</strong> para revisar el catálogo y luego crea tu primera plantilla en <strong>Rutinas</strong>. Cuando estés listo para sudar, presiona <strong>Entrenar</strong>.
-        </p>
-      </header>
+    <div style={{ paddingBottom: '2rem' }}>
       
+      {/* Header Profile / Title Area */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: 'var(--text-primary)' }}>Overview</h1>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Track your fitness metrics</p>
+        </div>
+      </header>
+
+      {/* Main Stats Grid */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-        gap: '2rem',
-        marginBottom: '3rem'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+        gap: '1rem',
+        marginBottom: '1rem'
       }}>
-        {/* Tarjeta: Entrenamientos Recientes */}
-        <Link to="/history" style={{ textDecoration: 'none' }}>
-          <div style={{...cardStyle, cursor: 'pointer'}} title="Ver mi historial de entrenamientos">
-            <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Últimos 7 Días
-            </h3>
-            <p style={{ fontSize: '3rem', fontWeight: 'bold', margin: 0, color: 'var(--successGreen)' }}>
-              {stats?.recent_workouts || 0}
-            </p>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>sesiones completadas</p>
-            <p style={{ color: 'var(--peach-text)', fontSize: '0.85rem', fontWeight: 'bold', marginTop: '1rem', textDecoration: 'none' }}>Ver historial completo ➡️</p>
+        
+        {/* BIG HERO CARD - Monthly Volume */}
+        <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>Monthly Volume</span>
+            <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>📊</span>
           </div>
-        </Link>
-
-        {/* Tarjeta: Volumen del Mes */}
-        <div style={cardStyle}>
-          <h3 style={{ margin: '0 0 1rem 0', color: colors.textSecondary, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Volumen Mensual
-          </h3>
-          <p style={{ fontSize: '3rem', fontWeight: 'bold', margin: 0, color: colors.accentRed }}>
-            {stats?.monthly_volume_kg ? stats.monthly_volume_kg.toLocaleString() : 0} <span style={{fontSize: '1.5rem'}}>kg</span>
-          </p>
-          <p style={{ color: colors.textSecondary, fontSize: '0.9rem', marginTop: '0.5rem' }}>tonelaje total levantado</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+            <span style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+              {stats?.monthly_volume_kg ? (stats.monthly_volume_kg / 1000).toFixed(1) : 0}
+            </span>
+            <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600' }}>TONS</span>
+          </div>
+          <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: 'var(--accent)', fontSize: '0.85rem', fontWeight: '600', backgroundColor: 'rgba(52, 199, 89, 0.15)', padding: '2px 8px', borderRadius: '4px' }}>
+              ↑ +12.5%
+            </span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>vs last month</span>
+          </div>
         </div>
 
-        {/* Tarjeta: Último Entrenamiento */}
-        <div style={cardStyle}>
-          <h3 style={{ margin: '0 0 1rem 0', color: colors.textSecondary, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Última Sesión
-          </h3>
-          {stats?.last_workout ? (
-            <>
-              <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: colors.textPrimary }}>
-                {stats.last_workout.routine_name}
-              </p>
-              <p style={{ color: colors.accentRed, fontWeight: 'bold', margin: '0.5rem 0' }}>
-                Hace {Math.floor((new Date() - new Date(stats.last_workout.date)) / (1000 * 60 * 60 * 24))} días
-              </p>
-              <p style={{ color: colors.textSecondary, fontSize: '0.9rem', margin: 0 }}>
-                Duración: {stats.last_workout.duration_minutes || '--'} min
-              </p>
-            </>
-          ) : (
-             <p style={{ fontSize: '1.2rem', color: colors.textSecondary, margin: '2rem 0' }}>No hay registros recientes.</p>
-          )}
+        {/* Small Cards Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          <Link to="/history" style={{ textDecoration: 'none' }}>
+            <div className="glass-panel" style={{ padding: '1.2rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s', cursor: 'pointer' }}>
+              <div>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Recent Activity</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>{stats?.recent_workouts || 0} <span style={{fontSize: '1rem', color: 'var(--text-secondary)'}}>sessions</span></span>
+              </div>
+              <div style={{ color: 'var(--accent)', fontSize: '0.85rem', fontWeight: '600', backgroundColor: 'rgba(52, 199, 89, 0.15)', padding: '4px 10px', borderRadius: '8px' }}>
+                View ➔
+              </div>
+            </div>
+          </Link>
+
+          <div className="glass-panel" style={{ padding: '1.2rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500', display: 'block', marginBottom: '0.5rem' }}>Last Workout</span>
+            {stats?.last_workout ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                  <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-primary)', display: 'block' }}>{stats.last_workout.routine_name}</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{stats.last_workout.duration_minutes || '--'} mins</span>
+                </div>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  {Math.floor((new Date() - new Date(stats.last_workout.date)) / (1000 * 60 * 60 * 24))}d ago
+                </span>
+              </div>
+            ) : (
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No recent records.</span>
+            )}
+          </div>
+
         </div>
       </div>
+
+      {/* Fake Heatmap/Chart Area to simulate the crypto layout for future analytics */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <span style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: '600' }}>Consistency Heatmap</span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', background: 'var(--bg-input)', padding: '4px 10px', borderRadius: '6px' }}>Last 30 Days</span>
+        </div>
+        
+        {/* Heatmap Mockup */}
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {Array.from({ length: 60 }).map((_, i) => (
+            <div key={i} style={{
+              width: 'calc(10% - 4px)',
+              aspectRatio: '1',
+              backgroundColor: Math.random() > 0.7 ? 'var(--accent)' : 'var(--bg-input)',
+              borderRadius: '2px',
+              opacity: Math.random() > 0.7 ? 1 : 0.3
+            }}></div>
+          ))}
+        </div>
+        <p style={{ margin: '1rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center' }}>
+          Advanced analytics coming in the next update...
+        </p>
+      </div>
+      
     </div>
   );
-};
-
-const cardStyle = {
-  padding: '2rem',
-  backgroundColor: colors.cardBg,
-  border: `1px solid ${colors.borderLine}`,
-  borderRadius: '16px',
-  textAlign: 'center',
-  boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
-  transition: 'transform 0.2s ease',
 };
 
 export default Dashboard;
