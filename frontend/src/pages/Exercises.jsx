@@ -5,6 +5,10 @@ const Exercises = () => {
   const [exercises, setExercises] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', muscle_group: '', description: '' });
+  
+  // Nuevo estado para el filtro
+  const [selectedGroup, setSelectedGroup] = useState('Todos');
+  const filterOptions = ['Todos', 'pecho', 'espalda', 'piernas', 'hombros', 'brazos', 'core', 'cardio', 'otro'];
 
   useEffect(() => {
     fetchExercises();
@@ -47,54 +51,67 @@ const Exercises = () => {
     }
   };
 
-  // --- Paleta "Soft Fitness" ---
-  const colors = {
-  background: 'var(--bg-primary)',
-  cardBg: 'var(--bg-card)',
-  textPrimary: 'var(--text-primary)',
-  textSecondary: 'var(--text-secondary)',
-  mintGradient: 'var(--mint-gradient)',
-  dangerGradient: 'var(--danger-gradient)',
-  cardShadow: 'var(--shadow-card)',
-  borderLine: 'var(--border-line)',
-  peachLight: 'var(--peach-light)',
-  peachText: 'var(--peach-text)',
-  accentRed: 'var(--mint-gradient)',
-  successGreen: 'var(--mint-gradient)',
-  danger: 'var(--danger)',
-  inputBg: 'var(--bg-input)'
-};
+  // Filtrar ejercicios basados en la selección
+  const displayedExercises = selectedGroup === 'Todos' 
+    ? exercises 
+    : exercises.filter(ex => ex.muscle_group === selectedGroup);
 
   return (
-    <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div style={{ paddingBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ maxWidth: '700px' }}>
-          <h1 style={{ margin: 0, color: colors.textPrimary, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Catálogo de Ejercicios</h1>
-          <p style={{ margin: 0, color: colors.textSecondary, fontSize: '1rem', lineHeight: '1.5' }}>
-            Esta es tu biblioteca maestra. Aquí están todos los ejercicios que puedes realizar. Si no encuentras tu favorito, agrégalo a tu cuenta personal para poder seleccionarlo cuando armes tus rutinas.
+          <h1 style={{ margin: 0, color: 'var(--text-primary)', marginBottom: '0.5rem', fontWeight: '700', fontSize: '1.75rem' }}>Catálogo de Ejercicios</h1>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+            Esta es tu biblioteca maestra. Explora el catálogo o crea ejercicios personalizados para tus rutinas.
           </p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          style={{ padding: '0.75rem 1.5rem', background: colors.accentRed, color: '#1C1C1E', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', textTransform: 'uppercase', whiteSpace: 'nowrap' }}
+          style={{ padding: '0.75rem 1.5rem', background: 'var(--accent)', color: '#000000', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.95rem', whiteSpace: 'nowrap' }}
         >
           + Nuevo Ejercicio
         </button>
       </div>
 
+      {/* Barra de Filtros */}
+      <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '1rem', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+        <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+        {filterOptions.map(option => (
+          <button
+            key={option}
+            onClick={() => setSelectedGroup(option)}
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: '20px',
+              border: `1px solid ${selectedGroup === option ? 'var(--accent)' : 'var(--border-line)'}`,
+              background: selectedGroup === option ? 'rgba(52, 199, 89, 0.15)' : 'transparent',
+              color: selectedGroup === option ? 'var(--accent)' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.9rem',
+              textTransform: 'capitalize',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-        {exercises.map(ex => (
-          <div key={ex.id} style={{ border: `2px solid ${colors.borderLine}`, borderRadius: '4px', padding: '1.5rem', backgroundColor: colors.cardBg, color: 'white', position: 'relative' }}>
-            <h3 style={{ marginTop: 0, color: colors.textPrimary, fontSize: '1.4rem', textTransform: 'uppercase', fontWeight: '800' }}>{ex.name}</h3>
-            <span style={{ display: 'inline-block', padding: '0.2rem 0.6rem', border: `1px solid ${colors.textSecondary}`, color: colors.textSecondary, borderRadius: '2px', fontSize: '0.85rem', marginBottom: '1rem', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '1px' }}>
+        {displayedExercises.map(ex => (
+          <div key={ex.id} className="glass-panel" style={{ padding: '1.5rem', position: 'relative' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: '600', marginBottom: '0.75rem' }}>{ex.name}</h3>
+            <span style={{ display: 'inline-block', padding: '0.2rem 0.6rem', border: '1px solid var(--border-line)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '0.75rem', marginBottom: '1rem', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px' }}>
               {ex.muscle_group}
             </span>
-            <p style={{ fontSize: '0.95rem', color: colors.textSecondary, margin: 0, lineHeight: '1.5' }}>{ex.description || "Sin descripción detallada."}</p>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>{ex.description || "Sin descripción detallada."}</p>
             
             {ex.is_custom && (
               <button 
                 onClick={() => handleDelete(ex.id)}
-                style={{ position: 'absolute', top: '1.2rem', right: '1.2rem', background: 'transparent', border: 'none', color: colors.danger, cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ position: 'absolute', top: '1.2rem', right: '1.2rem', background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 title="Eliminar ejercicio personalizado"
               >
                 🗑️
@@ -102,7 +119,7 @@ const Exercises = () => {
             )}
           </div>
         ))}
-        {exercises.length === 0 && <p style={{ color: colors.textSecondary, fontSize: '1.1rem' }}>Cargando ejercicios o catálogo vacío...</p>}
+        {displayedExercises.length === 0 && <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>No hay ejercicios en esta categoría.</p>}
       </div>
 
       {showModal && (
