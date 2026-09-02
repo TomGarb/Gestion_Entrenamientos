@@ -5,7 +5,7 @@ import { AuthContext } from '../../context/AuthContext';
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   
   // Siempre forzamos el tema oscuro por defecto para esta estetica
   const [isDark, setIsDark] = useState(() => {
@@ -96,6 +96,9 @@ const MainLayout = () => {
           <Link to="/exercises" style={{ color: isActive('/exercises') ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Ejercicios</Link>
           <Link to="/routines" style={{ color: isActive('/routines') ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Rutinas</Link>
           <Link to="/settings" style={{ color: isActive('/settings') ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Config</Link>
+          {user?.is_admin && (
+            <Link to="/admin" style={{ color: isActive('/admin') ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: 'bold' }}>🛡️ Admin</Link>
+          )}
           <Link to="/workout" style={{ color: '#000', background: 'var(--text-primary)', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: '600' }}>Entrenar</Link>
           <button 
             onClick={handleLogout} 
@@ -154,6 +157,11 @@ const MainLayout = () => {
         <Link to="/routines" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
           <IconList active={isActive('/routines')} />
         </Link>
+        {user?.is_admin && (
+          <Link to="/admin" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '20px', opacity: isActive('/admin') ? 1 : 0.5, filter: isActive('/admin') ? 'none' : 'grayscale(100%)' }}>🛡️</span>
+          </Link>
+        )}
         <Link to="/settings" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
           <IconSettings active={isActive('/settings')} />
         </Link>

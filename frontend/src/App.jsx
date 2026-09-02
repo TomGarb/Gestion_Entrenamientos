@@ -8,6 +8,8 @@ import Routines from './pages/Routines';
 import WorkoutSession from './pages/WorkoutSession';
 import Settings from './pages/Settings';
 import History from './pages/History';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminRoute from './components/common/AdminRoute';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
 // Componente para proteger rutas
@@ -40,6 +42,7 @@ function App() {
             <Route path="workout" element={<WorkoutSession />} />
             <Route path="settings" element={<Settings />} />
             <Route path="history" element={<History />} />
+            <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
