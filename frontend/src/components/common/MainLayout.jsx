@@ -35,9 +35,9 @@ const MainLayout = () => {
             GymTracker
           </Link>
         </div>
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontWeight: '600', fontSize: '1rem' }}>
+        <div className="nav-links" style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontWeight: '600', fontSize: '1rem' }}>
           <button onClick={toggleTheme} style={{ background: 'var(--bg-input)', border: 'none', color: 'var(--text-primary)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }} title="Cambiar tema">
-            {isDark ? '☀️' : '🌙'}
+            {isDark ? '🌙' : '☀️'}
           </button>
           <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Dashboard</Link>
           <Link to="/exercises" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Ejercicios</Link>
