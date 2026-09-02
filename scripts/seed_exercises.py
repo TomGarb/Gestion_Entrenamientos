@@ -94,7 +94,9 @@ EXERCISES_DATA = [
     {"name": "Salto a la cuerda", "muscle_group": "cardio", "equipment": "Cuerda"},
     {"name": "Escaladora (Stairmaster)", "muscle_group": "cardio", "equipment": "Máquina"},
     {"name": "Sprints", "muscle_group": "cardio", "equipment": "Peso corporal"},
-    {"name": "Burpees", "muscle_group": "cardio", "equipment": "Peso corporal"}
+    {"name": "Burpees", "muscle_group": "cardio", "equipment": "Peso corporal"},
+    {"name": "Jumping Jacks", "muscle_group": "cardio", "equipment": "Peso corporal"},
+    {"name": "Kettlebell Swings (Balanceo con pesa rusa)", "muscle_group": "cardio", "equipment": "Pesa rusa"}
 ]
 
 def seed_db():
