@@ -33,7 +33,7 @@ app.add_middleware(
 def read_root():
     return {"message": "Bienvenido a la API de GymTracker. El servidor FastAPI está funcionando."}
 
-from app.api.routers import auth, exercises, routines, workouts, dashboard, telegram
+from app.api.routers import auth, exercises, routines, workouts, dashboard, telegram, admin, feedback, analytics
 
 app.include_router(auth.router)
 app.include_router(exercises.router)
@@ -41,6 +41,9 @@ app.include_router(routines.router)
 app.include_router(workouts.router)
 app.include_router(dashboard.router)
 app.include_router(telegram.router)
+app.include_router(admin.router)
+app.include_router(feedback.router)
+app.include_router(analytics.router)
 
 if __name__ == "__main__":
     import uvicorn

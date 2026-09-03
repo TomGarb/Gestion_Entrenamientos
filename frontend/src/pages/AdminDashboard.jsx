@@ -4,6 +4,7 @@ import api from '../services/api';
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
+  const [feedbackList, setFeedbackList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -15,6 +16,9 @@ const AdminDashboard = () => {
 
         const usersResponse = await api.get('/api/admin/users');
         setUsers(usersResponse.data);
+
+        const feedbackResponse = await api.get('/api/admin/feedback');
+        setFeedbackList(feedbackResponse.data);
       } catch (err) {
         console.error("Error fetching admin data:", err);
         setError("Error al cargar datos. Verifica tu conexión o credenciales.");
@@ -77,6 +81,47 @@ const AdminDashboard = () => {
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h2 style={{ color: 'var(--text-primary)', margin: '2.5rem 0 1rem 0', fontWeight: '600', fontSize: '1.5rem' }}>Buzón de Feedback</h2>
+          <div style={{ overflowX: 'auto', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-line)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-line)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Fecha</th>
+                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Usuario</th>
+                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Mensaje</th>
+                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feedbackList.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay reportes de feedback.</td>
+                  </tr>
+                ) : (
+                  feedbackList.map(fb => (
+                    <tr key={fb.id} style={{ borderBottom: '1px solid var(--border-line)' }}>
+                      <td style={{ padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                        {new Date(fb.created_at).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '1rem', color: 'var(--text-primary)', fontWeight: '500' }}>
+                        {fb.username} <br />
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{fb.email}</span>
+                      </td>
+                      <td style={{ padding: '1rem', color: 'var(--text-secondary)', maxWidth: '300px', wordWrap: 'break-word' }}>
+                        {fb.message}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <span style={{ background: fb.status === 'pending' ? 'rgba(255, 159, 10, 0.15)' : 'rgba(52, 199, 89, 0.15)', color: fb.status === 'pending' ? '#FF9F0A' : 'var(--accent)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                          {fb.status.toUpperCase()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

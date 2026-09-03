@@ -1,11 +1,14 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import FeedbackModal from './FeedbackModal';
 
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useContext(AuthContext);
+  
+  const [showFeedback, setShowFeedback] = useState(false);
   
   // Siempre forzamos el tema oscuro por defecto para esta estetica
   const [isDark, setIsDark] = useState(() => {
@@ -89,6 +92,9 @@ const MainLayout = () => {
           </Link>
         </div>
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontWeight: '500', fontSize: '0.9rem' }}>
+          <button onClick={() => setShowFeedback(true)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }} title="Reportar un problema">
+            💡
+          </button>
           <button onClick={toggleTheme} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-line)', color: 'var(--text-primary)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }} title="Cambiar tema">
             {isDark ? '☀️' : '🌙'}
           </button>
@@ -122,7 +128,10 @@ const MainLayout = () => {
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Analytics & Tracking</span>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <button onClick={() => setShowFeedback(true)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>
+            💡
+          </button>
           <button onClick={toggleTheme} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
             {isDark ? '☀️' : '🌙'}
           </button>
@@ -166,6 +175,8 @@ const MainLayout = () => {
           <IconSettings active={isActive('/settings')} />
         </Link>
       </nav>
+
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
     </div>
   );
 };

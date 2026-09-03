@@ -1,30 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getDashboardStats } from '../services/dashboardService';
+import api from '../services/api';
+
+import Heatmap from '../components/analytics/Heatmap';
+import MusclePieChart from '../components/analytics/MusclePieChart';
+import ProgressionChart from '../components/analytics/ProgressionChart';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
+  const [heatmapData, setHeatmapData] = useState([]);
+  const [volumeData, setVolumeData] = useState([]);
+  const [progressionData, setProgressionData] = useState([]);
+  
+  const [exercises, setExercises] = useState([]);
+  const [selectedExerciseId, setSelectedExerciseId] = useState('');
+  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats();
+    const fetchAllData = async () => {
+      try {
+        const statsData = await getDashboardStats();
+        setStats(statsData);
+        
+        // Fetch Analytics
+        const [heatRes, volRes, exRes] = await Promise.all([
+          api.get('/api/analytics/activity-heatmap'),
+          api.get('/api/analytics/volume-by-muscle'),
+          api.get('/api/exercises')
+        ]);
+        
+        setHeatmapData(heatRes.data);
+        setVolumeData(volRes.data);
+        
+        const allEx = exRes.data;
+        setExercises(allEx);
+        
+        // Seleccionar por defecto el primer ejercicio que el usuario tenga (o press de banca si existe)
+        if (allEx.length > 0) {
+          const defaultEx = allEx.find(e => e.name.toLowerCase().includes('banca') || e.name.toLowerCase().includes('bench')) || allEx[0];
+          setSelectedExerciseId(defaultEx.id);
+        }
+        
+      } catch (error) {
+        console.error("Error fetching dashboard stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAllData();
   }, []);
 
-  const fetchStats = async () => {
+  useEffect(() => {
+    if (selectedExerciseId) {
+      fetchProgression(selectedExerciseId);
+    }
+  }, [selectedExerciseId]);
+
+  const fetchProgression = async (exerciseId) => {
     try {
-      const data = await getDashboardStats();
-      setStats(data);
+      const res = await api.get(`/api/analytics/progression/${exerciseId}`);
+      setProgressionData(res.data);
     } catch (error) {
-      console.error("Error fetching dashboard stats", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching progression", error);
     }
   };
 
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ color: 'var(--text-secondary)' }}>Loading analytics...</h2>
+        <h2 style={{ color: 'var(--text-secondary)' }}>Cargando analíticas...</h2>
       </div>
     );
   }
@@ -51,20 +98,17 @@ const Dashboard = () => {
         {/* BIG HERO CARD - Monthly Volume */}
         <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>Monthly Volume</span>
-            <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>📊</span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>Volumen Mensual</span>
+            <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>💪</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
             <span style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-              {stats?.monthly_volume_kg ? (stats.monthly_volume_kg / 1000).toFixed(1) : 0}
+              {stats?.monthly_volume_kg ? Math.round(stats.monthly_volume_kg).toLocaleString('es-AR') : 0}
             </span>
-            <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600' }}>TONS</span>
+            <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600' }}>KG</span>
           </div>
           <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: 'var(--accent)', fontSize: '0.85rem', fontWeight: '600', backgroundColor: 'rgba(52, 199, 89, 0.15)', padding: '2px 8px', borderRadius: '4px' }}>
-              ↑ +12.5%
-            </span>
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>vs last month</span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Basado en el historial reciente</span>
           </div>
         </div>
 
@@ -74,17 +118,17 @@ const Dashboard = () => {
           <Link to="/history" style={{ textDecoration: 'none' }}>
             <div className="glass-panel" style={{ padding: '1.2rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s', cursor: 'pointer' }}>
               <div>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Recent Activity</span>
-                <span style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>{stats?.recent_workouts || 0} <span style={{fontSize: '1rem', color: 'var(--text-secondary)'}}>sessions</span></span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Actividad Reciente</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>{stats?.recent_workouts || 0} <span style={{fontSize: '1rem', color: 'var(--text-secondary)'}}>sesiones</span></span>
               </div>
               <div style={{ color: 'var(--accent)', fontSize: '0.85rem', fontWeight: '600', backgroundColor: 'rgba(52, 199, 89, 0.15)', padding: '4px 10px', borderRadius: '8px' }}>
-                View ➔
+                Ver ➔
               </div>
             </div>
           </Link>
 
           <div className="glass-panel" style={{ padding: '1.2rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500', display: 'block', marginBottom: '0.5rem' }}>Last Workout</span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500', display: 'block', marginBottom: '0.5rem' }}>Último Entrenamiento</span>
             {stats?.last_workout ? (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                 <div>
@@ -96,37 +140,57 @@ const Dashboard = () => {
                 </span>
               </div>
             ) : (
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No recent records.</span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No hay registros.</span>
             )}
           </div>
 
         </div>
       </div>
 
-      {/* Fake Heatmap/Chart Area to simulate the crypto layout for future analytics */}
+      {/* Analytics Section */}
+      
+      {/* 1. Mapa de Calor */}
       <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <span style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: '600' }}>Consistency Heatmap</span>
-          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', background: 'var(--bg-input)', padding: '4px 10px', borderRadius: '6px' }}>Last 30 Days</span>
+          <span style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: '600' }}>Consistencia (Últimos 120 días)</span>
         </div>
-        
-        {/* Heatmap Mockup */}
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-          {Array.from({ length: 60 }).map((_, i) => (
-            <div key={i} style={{
-              width: 'calc(10% - 4px)',
-              aspectRatio: '1',
-              backgroundColor: Math.random() > 0.7 ? 'var(--accent)' : 'var(--bg-input)',
-              borderRadius: '2px',
-              opacity: Math.random() > 0.7 ? 1 : 0.3
-            }}></div>
-          ))}
-        </div>
-        <p style={{ margin: '1rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center' }}>
-          Advanced analytics coming in the next update...
-        </p>
+        <Heatmap data={heatmapData} />
       </div>
-      
+
+      {/* Gráficos Recharts Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+        
+        {/* 2. Distribución de Volumen (PieChart) */}
+        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <span style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: '600' }}>Volumen por Músculo</span>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: '4px 0 0 0' }}>Tonelaje total registrado</p>
+          </div>
+          <MusclePieChart data={volumeData} />
+        </div>
+
+        {/* 3. Progresión (LineChart) */}
+        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+            <span style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: '600' }}>Progresión de Fuerza</span>
+            <select 
+              value={selectedExerciseId} 
+              onChange={(e) => setSelectedExerciseId(e.target.value)}
+              style={{
+                background: 'var(--bg-input)', border: '1px solid var(--border-line)',
+                color: 'var(--text-primary)', padding: '0.5rem', borderRadius: '8px', outline: 'none'
+              }}
+            >
+              {exercises.map(ex => (
+                <option key={ex.id} value={ex.id}>{ex.name}</option>
+              ))}
+            </select>
+          </div>
+          <ProgressionChart data={progressionData} />
+        </div>
+
+      </div>
+
     </div>
   );
 };

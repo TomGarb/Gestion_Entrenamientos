@@ -11,6 +11,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     theme_preference: str
+    is_admin: bool = False
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
     target_weight_kg: Optional[float] = None

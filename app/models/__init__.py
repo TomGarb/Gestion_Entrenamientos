@@ -9,6 +9,7 @@ from app.models.user import User
 from app.models.exercise import Exercise
 from app.models.routine import Routine, RoutineExercise
 from app.models.workout import WorkoutLog, WorkoutSet
+from app.models.feedback import Feedback
 
 __all__ = [
     "User",
@@ -17,4 +18,5 @@ __all__ = [
     "RoutineExercise",
     "WorkoutLog",
     "WorkoutSet",
+    "Feedback",
 ]
