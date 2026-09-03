@@ -22,6 +22,7 @@ const colors = {
 
 const Routines = () => {
   const [routines, setRoutines] = useState([]);
+  const [shareLinks, setShareLinks] = useState({});
   const [exercisesCatalog, setExercisesCatalog] = useState([]);
   
   // Estado para el modal y el formulario de rutina
@@ -59,20 +60,7 @@ const Routines = () => {
       const response = await api.post(`/api/routines/${id}/share`);
       const { share_hash } = response.data;
       const shareUrl = `${window.location.origin}/shared/routine/${share_hash}`;
-      
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(shareUrl);
-          alert('¡Enlace copiado al portapapeles!
-
-' + shareUrl);
-        } else {
-          // Fallback if clipboard API is unavailable
-          prompt('Copia este enlace para compartir tu rutina:', shareUrl);
-        }
-      } catch (clipErr) {
-        prompt('Copia este enlace para compartir tu rutina:', shareUrl);
-      }
+      setShareLinks(prev => ({ ...prev, [id]: shareUrl }));
     } catch (error) {
       console.error("Error al generar el enlace de compartir", error);
       alert('Error en el servidor al generar el enlace');
@@ -199,7 +187,6 @@ const Routines = () => {
               ))}
             </div>
 
-            
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button 
                 onClick={() => handleSendToTelegram(routine.id)}
@@ -214,7 +201,26 @@ const Routines = () => {
                 🔗 Compartir
               </button>
             </div>
-
+  
+            {shareLinks[routine.id] && (
+              <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--bg-input)', borderRadius: '12px', border: '1px dashed var(--border-line)' }}>
+                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Enlace público (copia y comparte):</p>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input type="text" readOnly value={shareLinks[routine.id]} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-line)', fontSize: '0.85rem', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+                  <button 
+                    onClick={() => {
+                      if(navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(shareLinks[routine.id]);
+                        alert('¡Copiado!');
+                      }
+                    }} 
+                    style={{ padding: '0.5rem 1rem', background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    Copiar
+                  </button>
+                </div>
+              </div>
+            )}
 
             <button 
               onClick={() => handleDelete(routine.id)}
