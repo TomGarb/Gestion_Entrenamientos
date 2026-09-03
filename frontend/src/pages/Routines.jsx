@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getRoutines, createRoutine, deleteRoutine, sendRoutineToTelegram } from '../services/routineService';
 import { getExercises } from '../services/exerciseService';
+import api from '../services/api';
 
 // --- Paleta "Hierro y Sudor" ---
 const colors = {
