@@ -13,6 +13,9 @@ from app.models.user import User
 from app.models.routine import Routine
 from app.models.workout import WorkoutLog, WorkoutSet
 from app.api.deps import get_current_user
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
 

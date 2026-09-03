@@ -1,15 +1,19 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, register, loginWithGoogle } = useContext(AuthContext);
   
   const [isRegistering, setIsRegistering] = useState(false);
   const [credentials, setCredentials] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
+
+  const queryParams = new URLSearchParams(location.search);
+  const redirectUrl = queryParams.get('redirect') || '/';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,7 +23,7 @@ const Login = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       await loginWithGoogle(credentialResponse.credential);
-      navigate('/');
+      navigate(redirectUrl);
     } catch (err) {
       setError(err.response?.data?.detail || 'Error en Google Login');
     }
@@ -34,7 +38,7 @@ const Login = () => {
       } else {
         await login(credentials.username, credentials.password);
       }
-      navigate('/');
+      navigate(redirectUrl);
     } catch (err) {
       const detail = err.response?.data?.detail;
       if (Array.isArray(detail)) {

@@ -53,6 +53,32 @@ const Routines = () => {
   };
 
   // --- Lógica del Formulario Dinámico (Ejercicios) ---
+
+  const handleShare = async (id) => {
+    try {
+      const response = await api.post(`/api/routines/${id}/share`);
+      const { share_hash } = response.data;
+      const shareUrl = `${window.location.origin}/shared/routine/${share_hash}`;
+      
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(shareUrl);
+          alert('¡Enlace copiado al portapapeles!
+
+' + shareUrl);
+        } else {
+          // Fallback if clipboard API is unavailable
+          prompt('Copia este enlace para compartir tu rutina:', shareUrl);
+        }
+      } catch (clipErr) {
+        prompt('Copia este enlace para compartir tu rutina:', shareUrl);
+      }
+    } catch (error) {
+      console.error("Error al generar el enlace de compartir", error);
+      alert('Error en el servidor al generar el enlace');
+    }
+  };
+
   const addExerciseRow = () => {
     setRoutineExercises([...routineExercises, { exercise_id: '', sets: 3, reps: 10, rest_seconds: 60 }]);
   };
@@ -166,19 +192,29 @@ const Routines = () => {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
               {routine.routine_exercises.map((rx, idx) => (
-                <div key={rx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '1rem', borderRadius: '16px' }}>
+                <div key={rx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-input)', padding: '1rem', borderRadius: '16px' }}>
                   <span style={{ fontWeight: '600', color: colors.textPrimary, fontSize: '0.95rem' }}>{idx + 1}. {rx.exercise?.name || 'Ejercicio'}</span>
                   <span style={{ color: colors.peachText, backgroundColor: colors.peachLight, padding: '0.3rem 0.8rem', borderRadius: '9999px', fontWeight: '700', fontSize: '0.85rem' }}>{rx.sets}x{rx.reps}</span>
                 </div>
               ))}
             </div>
 
-            <button 
-              onClick={() => handleSendToTelegram(routine.id)}
-              style={{ width: '100%', padding: '0.8rem', background: '#E0F2FE', color: '#0284C7', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s ease' }}
-            >
-              ✈️ Enviar a Telegram
-            </button>
+            
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button 
+                onClick={() => handleSendToTelegram(routine.id)}
+                style={{ flex: 1, padding: '0.8rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s ease' }}
+              >
+                Telegram
+              </button>
+              <button 
+                onClick={() => handleShare(routine.id)}
+                style={{ flex: 1, padding: '0.8rem', background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s ease' }}
+              >
+                🔗 Compartir
+              </button>
+            </div>
+
 
             <button 
               onClick={() => handleDelete(routine.id)}

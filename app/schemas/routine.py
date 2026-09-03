@@ -33,6 +33,8 @@ class RoutineResponse(BaseModel):
     description: str
     user_id: int
     is_public: bool
+    share_hash: Optional[str] = None
+    author_name: Optional[str] = None
     routine_exercises: List[RoutineExerciseResponse] = []
     
     model_config = ConfigDict(from_attributes=True)

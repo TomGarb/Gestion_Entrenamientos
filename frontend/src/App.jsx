@@ -10,12 +10,14 @@ import Settings from './pages/Settings';
 import History from './pages/History';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminRoute from './components/common/AdminRoute';
+import SharedRoutinePreview from './pages/SharedRoutinePreview';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
 // Componente para proteger rutas
 const ProtectedRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
   if (!user) {
+    // If the user goes to a protected route directly without login, they are sent to login
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -27,6 +29,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/shared/routine/:hash" element={<SharedRoutinePreview />} />
 
           <Route 
             path="/" 
