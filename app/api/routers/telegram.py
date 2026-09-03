@@ -16,7 +16,11 @@ from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8756120850:AAEbw2yLnT0QVBeGiY53E0XQPKp3-XOh1kk")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+if not TELEGRAM_BOT_TOKEN:
+    raise ValueError("Falta TELEGRAM_BOT_TOKEN en el entorno")
+
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 def send_telegram_message(chat_id, text: str):

@@ -62,6 +62,11 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const loginWithGoogle = async (googleToken) => {
+    const response = await api.post('/api/auth/google', { token: googleToken });
+    setToken(response.data.access_token);
+  };
+
   const logout = () => {
     setToken(null);
   };
@@ -69,7 +74,7 @@ export const AuthProvider = ({ children }) => {
   if (loading) return null; // Wait for initial user fetch
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, updatePassword }}>
+    <AuthContext.Provider value={{ user, login, register, loginWithGoogle, logout, updateProfile, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

@@ -9,6 +9,15 @@ from app.schemas.user import UserCreate, UserResponse, Token, UserUpdate, UserPa
 from app.core.security import get_password_hash, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.api.deps import get_current_user
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import os
+import uuid
+from pydantic import BaseModel
+
+class GoogleAuth(BaseModel):
+    token: str
+
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserResponse)
@@ -89,3 +98,43 @@ def update_password(pass_update: UserPasswordUpdate, db: Session = Depends(get_d
     current_user.set_password(pass_update.new_password)
     db.commit()
     return {"status": "success", "message": "Contraseña actualizada"}
+
+@router.post("/google", response_model=Token)
+def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    if not client_id:
+        raise HTTPException(status_code=500, detail="Google Auth no está configurado en el servidor")
+        
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            google_data.token, 
+            google_requests.Request(), 
+            client_id
+        )
+        email = idinfo['email']
+        name = idinfo.get('given_name', email.split('@')[0])
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Token de Google inválido")
+        
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        # Create a new user with random password
+        base_username = name.lower().replace(" ", "")
+        username = base_username
+        if db.query(User).filter(User.username == username).first():
+            username = f"{base_username}_{str(uuid.uuid4())[:6]}"
+            
+        user = User(
+            username=username,
+            email=email
+        )
+        user.set_password(str(uuid.uuid4()))  # Contraseña aleatoria
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username, "id": user.id}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
