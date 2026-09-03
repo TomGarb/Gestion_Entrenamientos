@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getRoutines, createRoutine, deleteRoutine, sendRoutineToTelegram } from '../services/routineService';
 import { getExercises } from '../services/exerciseService';
 import api from '../services/api';
@@ -22,12 +23,15 @@ const colors = {
 };
 
 const Routines = () => {
+  const navigate = useNavigate();
   const [routines, setRoutines] = useState([]);
   const [shareLinks, setShareLinks] = useState({});
   const [exercisesCatalog, setExercisesCatalog] = useState([]);
   
   // Estado para el modal y el formulario de rutina
   const [showModal, setShowModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importLink, setImportLink] = useState('');
   const [formData, setFormData] = useState({ name: '', description: '' });
   
   // Estado para los ejercicios asignados dinámicamente
@@ -48,6 +52,20 @@ const Routines = () => {
     } catch (error) {
       console.error("Error cargando datos iniciales", error);
     }
+  };
+
+  const handleImportSubmit = (e) => {
+    e.preventDefault();
+    if (!importLink.trim()) return;
+    
+    // Extraer el hash si el usuario pegó el enlace completo o solo el hash
+    let hash = importLink.trim();
+    if (hash.includes('/')) {
+      const parts = hash.split('/');
+      hash = parts[parts.length - 1];
+    }
+    
+    navigate(`/shared/routine/${hash}`);
   };
 
   const handleFormChange = (e) => {
@@ -164,12 +182,20 @@ const Routines = () => {
             Las rutinas son tus plantillas de entrenamiento (ej. "Día de Piernas" o "Full Body"). Agrupa tus ejercicios aquí para que, al momento de ir al gimnasio, tu plan ya esté estructurado y solo tengas que anotar los pesos.
           </p>
         </div>
-        <button 
-          onClick={() => setShowModal(true)}
-          style={{ padding: '0.75rem 1.8rem', background: colors.mintGradient, color: '#FFFFFF', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', boxShadow: '0 10px 20px rgba(74, 222, 128, 0.2)', whiteSpace: 'nowrap' }}
-        >
-          + Nueva Rutina
-        </button>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => setShowImportModal(true)}
+              style={{ padding: '0.75rem 1.8rem', background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-line)', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', whiteSpace: 'nowrap' }}
+            >
+              📥 Importar
+            </button>
+            <button 
+              onClick={() => setShowModal(true)}
+              style={{ padding: '0.75rem 1.8rem', background: colors.mintGradient, color: '#FFFFFF', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', boxShadow: '0 10px 20px rgba(74, 222, 128, 0.2)', whiteSpace: 'nowrap' }}
+            >
+              + Nueva Rutina
+            </button>
+          </div>
       </div>
 
       {/* Grid de Rutinas */}
@@ -234,6 +260,32 @@ const Routines = () => {
         ))}
         {routines.length === 0 && <p style={{ color: colors.textSecondary, fontSize: '1.1rem' }}>No tienes rutinas creadas aún.</p>}
       </div>
+
+            {/* Modal / Formulario Importar */}
+      {showImportModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
+          <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', padding: '2rem', borderRadius: '24px', width: '95%', maxWidth: '500px', border: '1px solid var(--border-line)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <h2 style={{ marginTop: 0, color: 'var(--text-primary)', marginBottom: '1rem', fontWeight: '700', fontSize: '1.5rem' }}>Importar Rutina</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.95rem' }}>Pega el enlace o el código corto de la rutina que te han compartido.</p>
+            
+            <form onSubmit={handleImportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <input 
+                type="text" 
+                value={importLink} 
+                onChange={(e) => setImportLink(e.target.value)} 
+                placeholder="https://... o código" 
+                required 
+                style={{ padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-line)', background: 'var(--bg-input)' }} 
+              />
+              
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" onClick={() => setShowImportModal(false)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', fontWeight: '600' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.8rem 2rem', background: 'var(--accent)', color: '#000000', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '1rem' }}>Previsualizar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal / Formulario Lateral */}
       {showModal && (
