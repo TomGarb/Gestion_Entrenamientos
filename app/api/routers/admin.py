@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -42,15 +43,21 @@ def update_user_by_admin(
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     if user_update.username is not None and user_update.username.strip():
-        new_username = user_update.username.strip()
-        existing = db.query(User).filter(User.username == new_username, User.id != user_id).first()
+        new_username = user_update.username.strip().lower()
+        existing = db.query(User).filter(
+            func.lower(User.username) == new_username, 
+            User.id != user_id
+        ).first()
         if existing:
             raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
         target_user.username = new_username
 
     if user_update.email is not None and str(user_update.email).strip():
-        new_email = str(user_update.email).strip()
-        existing_email = db.query(User).filter(User.email == new_email, User.id != user_id).first()
+        new_email = str(user_update.email).strip().lower()
+        existing_email = db.query(User).filter(
+            func.lower(User.email) == new_email, 
+            User.id != user_id
+        ).first()
         if existing_email:
             raise HTTPException(status_code=400, detail="El email ya está en uso")
         target_user.email = new_email

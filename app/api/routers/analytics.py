@@ -74,23 +74,51 @@ def get_activity_heatmap(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Devuelve las fechas en las que el usuario entren.
+    Devuelve las fechas en las que el usuario entrenó junto con número de series, tonelaje total y nivel de intensidad (1, 2 o 3).
     """
-    # Solo necesitamos los ltimos 4 meses aprox para que encaje en el mvil (120 das)
+    # Últimos 120 días
     date_limit = datetime.now() - timedelta(days=120)
     
     results = (
         db.query(
-            cast(WorkoutLog.date, Date).label("workout_date"),
-            func.count(WorkoutLog.id).label("count")
+            WorkoutLog.date.label("workout_date"),
+            func.count(func.distinct(WorkoutLog.id)).label("count"),
+            func.count(WorkoutSet.id).label("total_sets"),
+            func.coalesce(func.sum(WorkoutSet.reps_completed * WorkoutSet.weight_kg), 0).label("total_volume")
         )
+        .outerjoin(WorkoutSet, WorkoutSet.workout_log_id == WorkoutLog.id)
         .filter(
             WorkoutLog.user_id == current_user.id,
             WorkoutLog.status == 'completed',
             WorkoutLog.date >= date_limit
         )
-        .group_by(cast(WorkoutLog.date, Date))
+        .group_by(WorkoutLog.date)
         .all()
     )
     
-    return [{"date": str(r[0]), "count": r[1]} for r in results]
+    heatmap = []
+    for r in results:
+        count = int(r.count or 0)
+        total_sets = int(r.total_sets or 0)
+        total_volume = float(r.total_volume or 0)
+        
+        # Determinar nivel de intensidad:
+        # Nivel 3: Alto volumen (>16 series o >=8000kg o 2+ entrenamientos)
+        # Nivel 2: Rutina estándar (9-16 series o 3000-8000kg)
+        # Nivel 1: Sesión ligera (1-8 series o <3000kg)
+        if total_sets > 16 or total_volume >= 8000 or count >= 2:
+            level = 3
+        elif total_sets >= 9 or total_volume >= 3000:
+            level = 2
+        else:
+            level = 1
+
+        heatmap.append({
+            "date": str(r.workout_date),
+            "count": count,
+            "total_sets": total_sets,
+            "total_volume": round(total_volume, 1),
+            "level": level
+        })
+
+    return heatmap

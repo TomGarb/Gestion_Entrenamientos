@@ -2,6 +2,7 @@ import React, { useContext, useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NotificationContext } from '../../context/NotificationContext';
 import { acceptWorkoutInvitation, rejectWorkoutInvitation } from '../../services/scheduledWorkoutService';
+import { BellIcon, DumbbellIcon, UsersIcon, CalendarIcon } from './Icons';
 
 const NotificationDropdown = ({ onClose }) => {
   const navigate = useNavigate();
@@ -90,19 +91,19 @@ const NotificationDropdown = ({ onClose }) => {
   const getIcon = (type) => {
     switch (type) {
       case 'workout_invitation':
-        return '🏋️';
+        return <DumbbellIcon size={18} color="var(--accent)" />;
       case 'workout_invitation_accepted':
-        return '🎉';
+        return <CalendarIcon size={18} color="var(--accent)" />;
       case 'workout_invitation_rejected':
-        return 'ℹ️';
+        return <CalendarIcon size={18} color="var(--text-secondary)" />;
       case 'friend_request':
-        return '👥';
+        return <UsersIcon size={18} color="var(--accent)" />;
       case 'friend_accepted':
-        return '🎉';
+        return <UsersIcon size={18} color="var(--accent)" />;
       case 'friend_rejected':
-        return 'ℹ️';
+        return <UsersIcon size={18} color="var(--text-secondary)" />;
       default:
-        return '🔔';
+        return <BellIcon size={18} color="var(--text-secondary)" />;
     }
   };
 
@@ -222,7 +223,9 @@ const NotificationDropdown = ({ onClose }) => {
               color: 'var(--text-secondary)'
             }}
           >
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🎉</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem', color: 'var(--accent)' }}>
+              <BellIcon size={36} strokeWidth={1.5} />
+            </div>
             <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
               Estás al día
             </div>

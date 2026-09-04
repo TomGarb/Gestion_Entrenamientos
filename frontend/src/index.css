@@ -15,6 +15,18 @@
   --peach-text: #EF4444;
   --danger: #EF4444;
   --accent: #10B981;
+  --accent-glow: rgba(16, 185, 129, 0.15);
+
+  /* Heatmap Colors (Light Mode) */
+  --heatmap-empty: #EBEDF0;
+  --heatmap-level-1: #9BE9A8;
+  --heatmap-level-2: #40C463;
+  --heatmap-level-3: #216E39;
+
+  /* Floating Dock (Light Mode) */
+  --dock-bg: rgba(255, 255, 255, 0.9);
+  --dock-border: rgba(228, 228, 231, 0.9);
+  --dock-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 body.dark {
@@ -32,7 +44,19 @@ body.dark {
   --peach-text: #FF3B30;
   --danger: #FF3B30;
   --accent: #34C759;
+  --accent-glow: rgba(52, 199, 89, 0.2);
   color-scheme: dark;
+
+  /* Heatmap Colors (Dark Mode) */
+  --heatmap-empty: #2D333B;
+  --heatmap-level-1: #9BE9A8;
+  --heatmap-level-2: #40C463;
+  --heatmap-level-3: #216E39;
+
+  /* Floating Dock (Dark Mode) */
+  --dock-bg: rgba(20, 20, 22, 0.85);
+  --dock-border: rgba(255, 255, 255, 0.12);
+  --dock-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 body {
@@ -82,7 +106,7 @@ button {
 }
 
 button:hover {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 a {
@@ -96,9 +120,138 @@ a {
   border-radius: 20px;
 }
 
-/* 📱 Responsive Mobile Styles */
+/* Nav Item & Icon Interactivity */
+.nav-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 10px;
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+}
 
-/* Desktop Top Nav hiding on mobile */
+.nav-icon-btn:hover, .nav-icon-btn:active {
+  color: var(--accent) !important;
+  background-color: var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.nav-link-item {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-link-item:hover, .nav-link-item:active {
+  color: var(--accent) !important;
+  background-color: var(--accent-glow);
+}
+
+.nav-link-item.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* 🚀 Floating Island Dock (Propuesta C) */
+.floating-dock-container {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  padding: 0 1rem;
+  pointer-events: none;
+}
+
+.floating-dock {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--dock-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--dock-border);
+  border-radius: 9999px;
+  box-shadow: var(--dock-shadow);
+  max-width: 480px;
+  width: 100%;
+}
+
+.dock-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  padding: 8px 10px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.dock-item:hover {
+  color: var(--accent);
+}
+
+.dock-item.active {
+  color: var(--accent);
+  background-color: var(--accent-glow);
+  padding: 8px 14px;
+}
+
+.dock-item .dock-label {
+  display: none;
+  opacity: 0;
+}
+
+.dock-item.active .dock-label {
+  display: inline-block;
+  opacity: 1;
+}
+
+/* Central Elevated Action Button */
+.dock-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #34C759 0%, #10B981 100%);
+  color: #000000;
+  box-shadow: 0 4px 14px rgba(52, 199, 89, 0.45);
+  transform: translateY(-4px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.dock-cta-btn:hover, .dock-cta-btn:active {
+  transform: translateY(-6px) scale(1.08);
+  box-shadow: 0 6px 20px rgba(52, 199, 89, 0.6);
+  color: #000000;
+}
+
+/* 📱 Responsive Mobile Styles */
 .desktop-nav {
   display: flex;
 }
@@ -114,7 +267,7 @@ a {
     display: flex !important;
   }
   main {
-    padding: 1rem 1rem 100px 1rem !important; /* padding bottom for bottom nav */
+    padding: 1rem 1rem 120px 1rem !important; /* padding bottom for floating dock */
   }
   .workout-card {
     grid-template-columns: 1fr !important;

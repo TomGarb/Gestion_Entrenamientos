@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
@@ -22,13 +23,18 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter((User.username == user.username) | (User.email == user.email)).first()
+    clean_username = user.username.strip().lower()
+    clean_email = str(user.email).strip().lower()
+
+    db_user = db.query(User).filter(
+        (func.lower(User.username) == clean_username) | (func.lower(User.email) == clean_email)
+    ).first()
     if db_user:
         raise HTTPException(status_code=400, detail="El usuario o email ya existe")
     
     new_user = User(
-        username=user.username,
-        email=user.email
+        username=clean_username,
+        email=clean_email
     )
     new_user.set_password(user.password)
     
@@ -39,9 +45,10 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # Permitir login con username o email
+    # Permitir login con username o email normalizado (case-insensitive)
+    clean_identifier = form_data.username.strip().lower()
     user = db.query(User).filter(
-        (User.username == form_data.username) | (User.email == form_data.username)
+        (func.lower(User.username) == clean_identifier) | (func.lower(User.email) == clean_identifier)
     ).first()
     
     if not user:
@@ -73,19 +80,25 @@ def get_me(current_user: User = Depends(get_current_user)):
 @router.put("/me", response_model=UserResponse)
 def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if user_update.username is not None and user_update.username.strip():
-        new_username = user_update.username.strip()
-        # Check if username is taken by another user
-        existing = db.query(User).filter(User.username == new_username, User.id != current_user.id).first()
+        clean_username = user_update.username.strip().lower()
+        # Check if username is taken by another user (case-insensitive)
+        existing = db.query(User).filter(
+            func.lower(User.username) == clean_username, 
+            User.id != current_user.id
+        ).first()
         if existing:
             raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
-        current_user.username = new_username
+        current_user.username = clean_username
     
     if user_update.email is not None and str(user_update.email).strip():
-        new_email = str(user_update.email).strip()
-        existing_email = db.query(User).filter(User.email == new_email, User.id != current_user.id).first()
+        clean_email = str(user_update.email).strip().lower()
+        existing_email = db.query(User).filter(
+            func.lower(User.email) == clean_email, 
+            User.id != current_user.id
+        ).first()
         if existing_email:
             raise HTTPException(status_code=400, detail="El email ya está en uso")
-        current_user.email = new_email
+        current_user.email = clean_email
 
     if user_update.height_cm is not None:
         current_user.height_cm = user_update.height_cm
@@ -121,17 +134,17 @@ def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
             google_requests.Request(), 
             client_id
         )
-        email = idinfo['email']
+        email = idinfo['email'].strip().lower()
         name = idinfo.get('given_name', email.split('@')[0])
     except ValueError:
         raise HTTPException(status_code=400, detail="Token de Google inválido")
         
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(func.lower(User.email) == email).first()
     if not user:
         # Create a new user with random password
-        base_username = name.lower().replace(" ", "")
+        base_username = name.strip().lower().replace(" ", "")
         username = base_username
-        if db.query(User).filter(User.username == username).first():
+        if db.query(User).filter(func.lower(User.username) == username).first():
             username = f"{base_username}_{str(uuid.uuid4())[:6]}"
             
         user = User(
