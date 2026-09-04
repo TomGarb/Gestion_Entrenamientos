@@ -7,27 +7,75 @@ const AdminDashboard = () => {
   const [feedbackList, setFeedbackList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toastMessage, setToastMessage] = useState(null);
+
+  // Edit user state
+  const [editingUser, setEditingUser] = useState(null);
+  const [editFormData, setEditFormData] = useState({ username: '', email: '', is_admin: false });
+  const [savingUser, setSavingUser] = useState(false);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const fetchAdminData = async () => {
+    try {
+      const [statsResponse, usersResponse, feedbackResponse] = await Promise.all([
+        api.get('/api/admin/stats'),
+        api.get('/api/admin/users'),
+        api.get('/api/admin/feedback')
+      ]);
+      setStats(statsResponse.data);
+      setUsers(usersResponse.data);
+      setFeedbackList(feedbackResponse.data);
+    } catch (err) {
+      console.error("Error fetching admin data:", err);
+      setError("Error al cargar datos. Verifica tu conexión o credenciales.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        const statsResponse = await api.get('/api/admin/stats');
-        setStats(statsResponse.data);
-
-        const usersResponse = await api.get('/api/admin/users');
-        setUsers(usersResponse.data);
-
-        const feedbackResponse = await api.get('/api/admin/feedback');
-        setFeedbackList(feedbackResponse.data);
-      } catch (err) {
-        console.error("Error fetching admin data:", err);
-        setError("Error al cargar datos. Verifica tu conexión o credenciales.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAdminData();
   }, []);
+
+  const handleOpenEdit = (user) => {
+    setEditingUser(user);
+    setEditFormData({
+      username: user.username,
+      email: user.email,
+      is_admin: user.is_admin
+    });
+  };
+
+  const handleSaveUser = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setSavingUser(true);
+    try {
+      await api.put(`/api/admin/users/${editingUser.id}`, editFormData);
+      showToast(`Usuario @${editFormData.username} actualizado con éxito.`);
+      setEditingUser(null);
+      await fetchAdminData();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Error al actualizar usuario");
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente a @${user.username}?`)) return;
+    try {
+      await api.delete(`/api/admin/users/${user.id}`);
+      showToast(`Usuario @${user.username} eliminado.`);
+      await fetchAdminData();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Error al eliminar usuario");
+    }
+  };
 
   return (
     <div style={{ paddingBottom: '2rem' }}>
@@ -35,6 +83,12 @@ const AdminDashboard = () => {
         <h1 style={{ color: 'var(--text-primary)', margin: '0 0 0.5rem 0', fontWeight: '700' }}>Panel de Control (Admin)</h1>
         <p style={{ color: 'var(--accent)', margin: 0, fontWeight: '600' }}>Acceso Restringido - Gestión de Plataforma</p>
       </div>
+
+      {toastMessage && (
+        <div style={{ padding: '0.85rem 1.25rem', backgroundColor: 'rgba(52, 199, 89, 0.15)', color: 'var(--accent)', borderRadius: '12px', border: '1px solid rgba(52, 199, 89, 0.3)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>✅</span> {toastMessage}
+        </div>
+      )}
 
       {error && (
         <div style={{ padding: '1rem', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--danger)', borderRadius: '12px', border: '1px solid var(--border-line)', marginBottom: '1.5rem' }}>
@@ -64,6 +118,7 @@ const AdminDashboard = () => {
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Usuario</th>
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Email</th>
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Rol</th>
+                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'right' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,6 +133,37 @@ const AdminDashboard = () => {
                       ) : (
                         <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Usuario</span>
                       )}
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>
+                      <button
+                        onClick={() => handleOpenEdit(u)}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid var(--border-line)',
+                          color: 'var(--text-primary)',
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          marginRight: '8px',
+                          fontSize: '0.85rem'
+                        }}
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(u)}
+                        style={{
+                          background: 'rgba(255, 59, 48, 0.1)',
+                          border: '1px solid rgba(255, 59, 48, 0.3)',
+                          color: 'var(--danger, #FF3B30)',
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem'
+                        }}
+                      >
+                        🗑️ Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -125,6 +211,137 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Modal Editar Usuario */}
+          {editingUser && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0, 0, 0, 0.75)',
+                backdropFilter: 'blur(5px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                padding: '1rem'
+              }}
+            >
+              <div
+                className="glass-panel"
+                style={{
+                  width: '100%',
+                  maxWidth: '460px',
+                  borderRadius: '20px',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-line)',
+                  padding: '1.75rem',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                    ✏️ Editar Usuario #{editingUser.id}
+                  </h3>
+                  <button
+                    onClick={() => setEditingUser(null)}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '1.2rem', cursor: 'pointer' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveUser} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                      Nombre de Usuario
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editFormData.username}
+                      onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input)',
+                        border: '1px solid var(--border-line)',
+                        color: 'var(--text-primary)',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                      Correo Electrónico
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={editFormData.email}
+                      onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input)',
+                        border: '1px solid var(--border-line)',
+                        color: 'var(--text-primary)',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      id="editIsAdmin"
+                      checked={editFormData.is_admin}
+                      onChange={(e) => setEditFormData({ ...editFormData, is_admin: e.target.checked })}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+                    />
+                    <label htmlFor="editIsAdmin" style={{ fontSize: '0.9rem', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: '500' }}>
+                      Rol de Administrador
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingUser(null)}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid var(--border-line)',
+                        color: 'var(--text-secondary)',
+                        padding: '0.65rem 1.2rem',
+                        borderRadius: '10px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingUser}
+                      style={{
+                        background: 'var(--primary-gradient, linear-gradient(135deg, #34C759 0%, #28CD41 100%))',
+                        color: '#000000',
+                        border: 'none',
+                        padding: '0.65rem 1.4rem',
+                        borderRadius: '10px',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {savingUser ? 'Guardando...' : 'Guardar Cambios'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </>
       ) : null}
     </div>

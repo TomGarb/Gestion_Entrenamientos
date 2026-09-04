@@ -33,6 +33,9 @@ class User(Base):
     weight_kg = Column(Float, nullable=True)
     target_weight_kg = Column(Float, nullable=True)
 
+    # Privacy Settings
+    share_calendar_with_friends = Column(Boolean, default=True, nullable=False)
+
     # --- Relaciones -----------------------------------------------------------
     routines = relationship(
         "Routine",
@@ -53,6 +56,22 @@ class User(Base):
         "Feedback",
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    notifications = relationship(
+        "Notification",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    group_memberships = relationship(
+        "GroupMember",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    scheduled_workouts = relationship(
+        "ScheduledWorkout",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        foreign_keys="[ScheduledWorkout.user_id]",
     )
 
     def __repr__(self) -> str:

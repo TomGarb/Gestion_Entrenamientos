@@ -72,19 +72,29 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserResponse)
 def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if user_update.username is not None:
+    if user_update.username is not None and user_update.username.strip():
+        new_username = user_update.username.strip()
         # Check if username is taken by another user
-        existing = db.query(User).filter(User.username == user_update.username, User.id != current_user.id).first()
+        existing = db.query(User).filter(User.username == new_username, User.id != current_user.id).first()
         if existing:
             raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
-        current_user.username = user_update.username
+        current_user.username = new_username
     
+    if user_update.email is not None and str(user_update.email).strip():
+        new_email = str(user_update.email).strip()
+        existing_email = db.query(User).filter(User.email == new_email, User.id != current_user.id).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="El email ya está en uso")
+        current_user.email = new_email
+
     if user_update.height_cm is not None:
         current_user.height_cm = user_update.height_cm
     if user_update.weight_kg is not None:
         current_user.weight_kg = user_update.weight_kg
     if user_update.target_weight_kg is not None:
         current_user.target_weight_kg = user_update.target_weight_kg
+    if user_update.share_calendar_with_friends is not None:
+        current_user.share_calendar_with_friends = user_update.share_calendar_with_friends
         
     db.commit()
     db.refresh(current_user)

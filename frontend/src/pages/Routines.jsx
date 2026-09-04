@@ -214,16 +214,23 @@ const Routines = () => {
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
+              <button 
+                onClick={() => navigate('/calendar', { state: { preselectedRoutineId: routine.id } })}
+                style={{ padding: '0.8rem', background: 'rgba(52, 199, 89, 0.15)', color: 'var(--accent)', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', transition: 'all 0.3s ease' }}
+                title="Agendar en el calendario o invitar a un amigo"
+              >
+                📅 Agendar
+              </button>
               <button 
                 onClick={() => handleSendToTelegram(routine.id)}
-                style={{ flex: 1, padding: '0.8rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s ease' }}
+                style={{ padding: '0.8rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', transition: 'all 0.3s ease' }}
               >
                 Telegram
               </button>
               <button 
                 onClick={() => handleShare(routine.id)}
-                style={{ flex: 1, padding: '0.8rem', background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s ease' }}
+                style={{ padding: '0.8rem', background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', transition: 'all 0.3s ease' }}
               >
                 🔗 Compartir
               </button>
