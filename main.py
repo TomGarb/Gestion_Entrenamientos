@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import engine, Base
+from app.database import engine, Base, run_auto_migrations
 from app.models import user, exercise, routine, workout, feedback, friendship, notification, group, scheduled_workout
 
 Base.metadata.create_all(bind=engine)
+run_auto_migrations(engine)
 
 # Initialize FastAPI app
 app = FastAPI(

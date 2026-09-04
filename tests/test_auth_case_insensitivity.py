@@ -166,5 +166,36 @@ class TestAuthAndAnalytics(unittest.TestCase):
 
         db.close()
 
+    def test_auto_migration_adds_missing_columns(self):
+        from sqlalchemy import inspect, text
+        from app.database import run_auto_migrations
+
+        # Simular una base de datos existente antigua donde la tabla 'users' no tiene 'avatar_url'
+        test_engine = create_engine("sqlite:///:memory:")
+        with test_engine.begin() as conn:
+            conn.execute(text("""
+                CREATE TABLE users (
+                    id INTEGER PRIMARY KEY,
+                    username VARCHAR(80) UNIQUE NOT NULL,
+                    email VARCHAR(120) UNIQUE NOT NULL,
+                    password_hash VARCHAR(256) NOT NULL,
+                    is_admin BOOLEAN NOT NULL DEFAULT 0,
+                    theme_preference VARCHAR(10) NOT NULL DEFAULT 'dark',
+                    created_at DATETIME NOT NULL
+                )
+            """))
+
+        # Validar que antes de la migración no existe avatar_url
+        cols_before = [c["name"] for c in inspect(test_engine).get_columns("users")]
+        self.assertNotIn("avatar_url", cols_before)
+
+        # Ejecutar auto migración
+        run_auto_migrations(test_engine)
+
+        # Validar que ahora avatar_url sí existe
+        cols_after = [c["name"] for c in inspect(test_engine).get_columns("users")]
+        self.assertIn("avatar_url", cols_after)
+
+
 if __name__ == "__main__":
     unittest.main()

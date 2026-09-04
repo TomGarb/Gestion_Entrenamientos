@@ -39,9 +39,38 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+
+def run_auto_migrations(target_engine=None):
+    """
+    Sincroniza dinámicamente columnas faltantes en tablas existentes sin requerir Alembic.
+    Detecta si una columna definida en los modelos de SQLAlchemy no existe en la base de datos
+    y ejecuta ALTER TABLE para agregarla de forma segura y retrocompatible.
+    """
+    eng = target_engine or engine
+    try:
+        from sqlalchemy import inspect, text
+
+        inspector = inspect(eng)
+        existing_tables = inspector.get_table_names()
+
+        with eng.begin() as conn:
+            for table_name, table in Base.metadata.tables.items():
+                if table_name in existing_tables:
+                    existing_columns = {col["name"] for col in inspector.get_columns(table_name)}
+                    for col in table.columns:
+                        if col.name not in existing_columns:
+                            col_type = col.type.compile(eng.dialect)
+                            alter_stmt = f'ALTER TABLE "{table_name}" ADD COLUMN "{col.name}" {col_type}'
+                            conn.execute(text(alter_stmt))
+                            print(f"[Auto-Migrate] Columna agregada exitosamente: {table_name}.{col.name} ({col_type})")
+    except Exception as e:
+        print(f"[Auto-Migrate] Aviso/Error durante sincronización de columnas: {e}")
+
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
