@@ -170,7 +170,7 @@ class TestAuthAndAnalytics(unittest.TestCase):
         from sqlalchemy import inspect, text
         from app.database import run_auto_migrations
 
-        # Simular una base de datos existente antigua donde la tabla 'users' no tiene 'avatar_url'
+        # Simular una base de datos existente antigua donde la tabla 'users' no tiene 'avatar_url' ni 'extra_data'
         test_engine = create_engine("sqlite:///:memory:")
         with test_engine.begin() as conn:
             conn.execute(text("""
@@ -185,16 +185,66 @@ class TestAuthAndAnalytics(unittest.TestCase):
                 )
             """))
 
-        # Validar que antes de la migración no existe avatar_url
+        # Validar que antes de la migración no existen avatar_url ni extra_data
         cols_before = [c["name"] for c in inspect(test_engine).get_columns("users")]
         self.assertNotIn("avatar_url", cols_before)
+        self.assertNotIn("extra_data", cols_before)
 
         # Ejecutar auto migración
         run_auto_migrations(test_engine)
 
-        # Validar que ahora avatar_url sí existe
+        # Validar que ahora avatar_url y extra_data sí existen
         cols_after = [c["name"] for c in inspect(test_engine).get_columns("users")]
         self.assertIn("avatar_url", cols_after)
+        self.assertIn("extra_data", cols_after)
+
+    def test_user_extra_data_preferences_and_merge(self):
+        # 1. Registrar usuario
+        reg_payload = {
+            "username": "bento_user",
+            "email": "bento@example.com",
+            "password": "Password123!"
+        }
+        res_reg = client.post("/api/auth/register", json=reg_payload)
+        self.assertEqual(res_reg.status_code, 200)
+
+        # 2. Login
+        login_res = client.post("/api/auth/login", data={"username": "bento_user", "password": "Password123!"})
+        token = login_res.json()["access_token"]
+
+        # 3. Guardar preferencias iniciales del dashboard
+        pref1 = {
+            "extra_data": {
+                "dashboard_widgets": {
+                    "monthly_volume": True,
+                    "group_feed": False
+                }
+            }
+        }
+        res_update1 = client.put("/api/auth/me", json=pref1, headers={"Authorization": f"Bearer {token}"})
+        self.assertEqual(res_update1.status_code, 200, res_update1.text)
+        data1 = res_update1.json()
+        self.assertIsNotNone(data1["extra_data"])
+        self.assertEqual(data1["extra_data"]["dashboard_widgets"]["monthly_volume"], True)
+        self.assertEqual(data1["extra_data"]["dashboard_widgets"]["group_feed"], False)
+
+        # 4. Actualizar otra clave individual mediante merge seguro sin sobreescribir group_feed
+        pref2 = {
+            "extra_data": {
+                "dashboard_widgets": {
+                    "consistency_heatmap": True
+                },
+                "theme_custom": "custom_emerald"
+            }
+        }
+        res_update2 = client.put("/api/auth/me", json=pref2, headers={"Authorization": f"Bearer {token}"})
+        self.assertEqual(res_update2.status_code, 200, res_update2.text)
+        data2 = res_update2.json()
+        widgets = data2["extra_data"]["dashboard_widgets"]
+        self.assertEqual(widgets["monthly_volume"], True)
+        self.assertEqual(widgets["group_feed"], False)
+        self.assertEqual(widgets["consistency_heatmap"], True)
+        self.assertEqual(data2["extra_data"]["theme_custom"], "custom_emerald")
 
 
 if __name__ == "__main__":

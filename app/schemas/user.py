@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, field_validator
-from typing import Optional
+from typing import Optional, Dict, Any
 
 class UserCreate(BaseModel):
     username: str
@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     avatar_url: Optional[str] = None
+    extra_data: Optional[Dict[str, Any]] = None
     theme_preference: str
     is_admin: bool = False
     height_cm: Optional[float] = None
@@ -39,6 +40,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     avatar_url: Optional[str] = None
+    extra_data: Optional[Dict[str, Any]] = None
     is_admin: Optional[bool] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None

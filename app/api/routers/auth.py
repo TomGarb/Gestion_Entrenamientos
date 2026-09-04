@@ -110,6 +110,14 @@ def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_us
         current_user.share_calendar_with_friends = user_update.share_calendar_with_friends
     if user_update.avatar_url is not None:
         current_user.avatar_url = user_update.avatar_url
+    if user_update.extra_data is not None:
+        current_extra = dict(current_user.extra_data) if current_user.extra_data else {}
+        for key, val in user_update.extra_data.items():
+            if isinstance(val, dict) and isinstance(current_extra.get(key), dict):
+                current_extra[key] = {**current_extra[key], **val}
+            else:
+                current_extra[key] = val
+        current_user.extra_data = current_extra
         
     db.commit()
     db.refresh(current_user)
