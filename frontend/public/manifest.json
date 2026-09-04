@@ -3,19 +3,19 @@
   "name": "GymTracker - App de Entrenamientos",
   "icons": [
     {
-      "src": "/vite.svg",
-      "type": "image/svg+xml",
+      "src": "/logo-192.png",
+      "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/vite.svg",
-      "type": "image/svg+xml",
+      "src": "/logo-512.png",
+      "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": "/",
-  "background_color": "#F7F9F9",
+  "background_color": "#121212",
   "display": "standalone",
-  "theme_color": "#4ADE80",
+  "theme_color": "#121212",
   "orientation": "portrait"
 }
