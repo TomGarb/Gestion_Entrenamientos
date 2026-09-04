@@ -1,0 +1,124 @@
+/* Estilos personalizados para react-calendar en GymTracker */
+.custom-calendar-container .react-calendar {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-line);
+  border-radius: 20px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.custom-calendar-container .react-calendar__navigation {
+  display: flex;
+  height: 48px;
+  margin-bottom: 1rem;
+}
+
+.custom-calendar-container .react-calendar__navigation button {
+  color: var(--text-primary);
+  min-width: 44px;
+  background: transparent;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-calendar-container .react-calendar__navigation button:enabled:hover,
+.custom-calendar-container .react-calendar__navigation button:enabled:focus {
+  background-color: var(--bg-input);
+  border-color: var(--border-line);
+}
+
+.custom-calendar-container .react-calendar__navigation button[disabled] {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.custom-calendar-container .react-calendar__month-view__weekdays {
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-line);
+  margin-bottom: 0.5rem;
+}
+
+.custom-calendar-container .react-calendar__month-view__weekdays abbr {
+  text-decoration: none;
+}
+
+.custom-calendar-container .react-calendar__month-view__days__day--neighboringMonth {
+  opacity: 0.3;
+}
+
+.custom-calendar-container .react-calendar__tile {
+  min-height: 72px;
+  max-width: 100%;
+  padding: 0.5rem 0.25rem;
+  background: transparent;
+  text-align: center;
+  line-height: 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.custom-calendar-container .react-calendar__tile:enabled:hover {
+  background-color: var(--bg-input);
+  border-color: var(--border-line);
+}
+
+.custom-calendar-container .react-calendar__tile--now {
+  background: rgba(52, 199, 89, 0.08) !important;
+  border: 1px solid rgba(52, 199, 89, 0.3) !important;
+  color: var(--accent) !important;
+}
+
+.custom-calendar-container .react-calendar__tile--active,
+.custom-calendar-container .react-calendar__tile--active:enabled:hover,
+.custom-calendar-container .react-calendar__tile--active:enabled:focus {
+  background: var(--bg-input) !important;
+  border: 1.5px solid var(--accent) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.2);
+}
+
+.tile-dots-container {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.tile-dot-completed {
+  background: #34C759;
+  box-shadow: 0 0 6px rgba(52, 199, 89, 0.6);
+}
+
+.tile-dot-scheduled {
+  background: #0A84FF;
+  box-shadow: 0 0 6px rgba(10, 132, 255, 0.6);
+}

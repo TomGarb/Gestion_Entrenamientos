@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { generateLinkCode, testConnection } from '../services/telegramService';
 import { AuthContext } from '../context/AuthContext';
 
@@ -31,11 +31,27 @@ const Settings = () => {
   // Perfil state
   const [profileData, setProfileData] = useState({
     username: user?.username || '',
+    email: user?.email || '',
     height_cm: user?.height_cm || '',
     weight_kg: user?.weight_kg || '',
-    target_weight_kg: user?.target_weight_kg || ''
+    target_weight_kg: user?.target_weight_kg || '',
+    share_calendar_with_friends: user?.share_calendar_with_friends ?? true
   });
   const [savingProfile, setSavingProfile] = useState(false);
+
+  // Sincronizar estado cuando el usuario se carga o actualiza
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        username: user.username || '',
+        email: user.email || '',
+        height_cm: user.height_cm || '',
+        weight_kg: user.weight_kg || '',
+        target_weight_kg: user.target_weight_kg || '',
+        share_calendar_with_friends: user.share_calendar_with_friends ?? true
+      });
+    }
+  }, [user]);
 
   // Password state
   const [passData, setPassData] = useState({
@@ -82,10 +98,12 @@ const Settings = () => {
     setSavingProfile(true);
     try {
       const payload = {
-        username: profileData.username,
+        username: profileData.username.trim(),
+        email: profileData.email.trim(),
         height_cm: profileData.height_cm ? parseFloat(profileData.height_cm) : null,
         weight_kg: profileData.weight_kg ? parseFloat(profileData.weight_kg) : null,
         target_weight_kg: profileData.target_weight_kg ? parseFloat(profileData.target_weight_kg) : null,
+        share_calendar_with_friends: profileData.share_calendar_with_friends
       };
       await updateProfile(payload);
       showToast("Perfil actualizado correctamente", true);
@@ -117,7 +135,8 @@ const Settings = () => {
   const inputStyle = {
     width: '100%', padding: '0.75rem', backgroundColor: colors.inputBg,
     border: `1px solid ${colors.borderLine}`, borderRadius: '6px',
-    color: colors.textPrimary, marginBottom: '1.25rem', fontSize: '1rem'
+    color: colors.textPrimary, marginBottom: '1.25rem', fontSize: '1rem',
+    boxSizing: 'border-box'
   };
 
   const labelStyle = {
@@ -162,6 +181,9 @@ const Settings = () => {
             
             <label style={labelStyle}>Nombre de usuario</label>
             <input style={inputStyle} type="text" value={profileData.username} onChange={e => setProfileData({...profileData, username: e.target.value})} required />
+
+            <label style={labelStyle}>Correo Electrónico</label>
+            <input style={inputStyle} type="email" value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} required />
             
             <div style={{ display: 'flex', gap: '1rem' }}>
               <div style={{ flex: 1 }}>
@@ -176,6 +198,25 @@ const Settings = () => {
 
             <label style={labelStyle}>Peso Objetivo (kg) - Meta</label>
             <input style={inputStyle} type="number" step="0.1" value={profileData.target_weight_kg} onChange={e => setProfileData({...profileData, target_weight_kg: e.target.value})} placeholder="Ej. 75" />
+
+            <div style={{ padding: '1rem', background: 'var(--bg-input)', borderRadius: '12px', border: `1px solid ${colors.borderLine}`, marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                <div>
+                  <span style={{ fontWeight: '700', fontSize: '0.95rem', color: colors.textPrimary, display: 'block' }}>
+                    📅 Compartir Calendario con Amigos
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: colors.textSecondary }}>
+                    Permite a los usuarios en tu lista de amigos ver tus entrenamientos pasados y sesiones planificadas.
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={profileData.share_calendar_with_friends}
+                  onChange={(e) => setProfileData({ ...profileData, share_calendar_with_friends: e.target.checked })}
+                  style={{ width: '22px', height: '22px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+                />
+              </div>
+            </div>
 
             <button type="submit" disabled={savingProfile} style={{ padding: '0.75rem 1.5rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}>
               {savingProfile ? 'Guardando...' : 'Guardar Cambios'}

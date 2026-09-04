@@ -9,6 +9,15 @@ from app.schemas.user import UserCreate, UserResponse, Token, UserUpdate, UserPa
 from app.core.security import get_password_hash, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.api.deps import get_current_user
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import os
+import uuid
+from pydantic import BaseModel
+
+class GoogleAuth(BaseModel):
+    token: str
+
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserResponse)
@@ -63,19 +72,29 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserResponse)
 def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if user_update.username is not None:
+    if user_update.username is not None and user_update.username.strip():
+        new_username = user_update.username.strip()
         # Check if username is taken by another user
-        existing = db.query(User).filter(User.username == user_update.username, User.id != current_user.id).first()
+        existing = db.query(User).filter(User.username == new_username, User.id != current_user.id).first()
         if existing:
             raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
-        current_user.username = user_update.username
+        current_user.username = new_username
     
+    if user_update.email is not None and str(user_update.email).strip():
+        new_email = str(user_update.email).strip()
+        existing_email = db.query(User).filter(User.email == new_email, User.id != current_user.id).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="El email ya está en uso")
+        current_user.email = new_email
+
     if user_update.height_cm is not None:
         current_user.height_cm = user_update.height_cm
     if user_update.weight_kg is not None:
         current_user.weight_kg = user_update.weight_kg
     if user_update.target_weight_kg is not None:
         current_user.target_weight_kg = user_update.target_weight_kg
+    if user_update.share_calendar_with_friends is not None:
+        current_user.share_calendar_with_friends = user_update.share_calendar_with_friends
         
     db.commit()
     db.refresh(current_user)
@@ -89,3 +108,43 @@ def update_password(pass_update: UserPasswordUpdate, db: Session = Depends(get_d
     current_user.set_password(pass_update.new_password)
     db.commit()
     return {"status": "success", "message": "Contraseña actualizada"}
+
+@router.post("/google", response_model=Token)
+def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    if not client_id:
+        raise HTTPException(status_code=500, detail="Google Auth no está configurado en el servidor")
+        
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            google_data.token, 
+            google_requests.Request(), 
+            client_id
+        )
+        email = idinfo['email']
+        name = idinfo.get('given_name', email.split('@')[0])
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Token de Google inválido")
+        
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        # Create a new user with random password
+        base_username = name.lower().replace(" ", "")
+        username = base_username
+        if db.query(User).filter(User.username == username).first():
+            username = f"{base_username}_{str(uuid.uuid4())[:6]}"
+            
+        user = User(
+            username=username,
+            email=email
+        )
+        user.set_password(str(uuid.uuid4()))  # Contraseña aleatoria
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username, "id": user.id}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

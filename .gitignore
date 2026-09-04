@@ -17,6 +17,7 @@ app.db
 .env
 .env.local
 .env.*
+!.env.example
 
 # Frontend (React/Vite/Node)
 frontend/node_modules/

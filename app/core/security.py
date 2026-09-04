@@ -1,8 +1,16 @@
 import bcrypt
+import os
 from datetime import datetime, timedelta, timezone
 import jwt
+from dotenv import load_dotenv
 
-SECRET_KEY = "super-secret-key-change-in-production"
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    raise ValueError("Falta SECRET_KEY en el entorno")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 días
 

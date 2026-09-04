@@ -8,12 +8,19 @@ import Routines from './pages/Routines';
 import WorkoutSession from './pages/WorkoutSession';
 import Settings from './pages/Settings';
 import History from './pages/History';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminRoute from './components/common/AdminRoute';
+import SharedRoutinePreview from './pages/SharedRoutinePreview';
+import Community from './pages/Community';
+import CalendarPage from './pages/CalendarPage';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 // Componente para proteger rutas
 const ProtectedRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
   if (!user) {
+    // If the user goes to a protected route directly without login, they are sent to login
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -22,29 +29,35 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+      <NotificationProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/shared/routine/:hash" element={<SharedRoutinePreview />} />
 
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="exercises" element={<Exercises />} />
-            <Route path="routines" element={<Routines />} />
-            <Route path="workout" element={<WorkoutSession />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="history" element={<History />} />
-          </Route>
+            <Route 
+              path="/" 
+              element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="exercises" element={<Exercises />} />
+              <Route path="routines" element={<Routines />} />
+              <Route path="calendar" element={<CalendarPage />} />
+              <Route path="community" element={<Community />} />
+              <Route path="workout" element={<WorkoutSession />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="history" element={<History />} />
+              <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

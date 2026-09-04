@@ -5,7 +5,7 @@ Modelo User - Gestión de cuentas de usuario puro SQLAlchemy.
 import bcrypt
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, DateTime, Float
+from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -18,6 +18,7 @@ class User(Base):
     username = Column(String(80), unique=True, nullable=False, index=True)
     email = Column(String(120), unique=True, nullable=False, index=True)
     password_hash = Column(String(256), nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
     theme_preference = Column(String(10), default="dark", nullable=False)
     created_at = Column(
         DateTime(timezone=True),
@@ -31,6 +32,9 @@ class User(Base):
     height_cm = Column(Float, nullable=True)
     weight_kg = Column(Float, nullable=True)
     target_weight_kg = Column(Float, nullable=True)
+
+    # Privacy Settings
+    share_calendar_with_friends = Column(Boolean, default=True, nullable=False)
 
     # --- Relaciones -----------------------------------------------------------
     routines = relationship(
@@ -47,6 +51,27 @@ class User(Base):
         "WorkoutLog",
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    feedbacks = relationship(
+        "Feedback",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    notifications = relationship(
+        "Notification",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    group_memberships = relationship(
+        "GroupMember",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    scheduled_workouts = relationship(
+        "ScheduledWorkout",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        foreign_keys="[ScheduledWorkout.user_id]",
     )
 
     def __repr__(self) -> str:

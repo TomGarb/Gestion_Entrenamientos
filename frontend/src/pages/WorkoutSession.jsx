@@ -136,9 +136,14 @@ const WorkoutSession = () => {
     return (
       <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h1 style={{ marginBottom: '1rem', textAlign: 'center' }}>¿Qué vamos a entrenar hoy?</h1>
-        <p style={{ color: colors.textSecondary, marginBottom: '3rem', maxWidth: '600px', textAlign: 'center', lineHeight: '1.5', fontSize: '1.1rem' }}>
-          Elige <strong>Entrenamiento Libre</strong> si quieres improvisar y añadir ejercicios sobre la marcha. Si prefieres seguir un plan, selecciona una de tus <strong>Rutinas</strong> guardadas para cargar los ejercicios automáticamente.
+        <p style={{ color: colors.textSecondary, marginBottom: '2rem', maxWidth: '600px', textAlign: 'center', lineHeight: '1.5', fontSize: '1.1rem' }}>
+          Elige <strong>Entrenamiento Libre</strong> si quieres improvisar y añadir ejercicios manualmente sobre la marcha. Si prefieres seguir un plan estructurado, selecciona una de tus <strong>Rutinas</strong> guardadas para cargar todos sus ejercicios automáticamente.
         </p>
+        
+        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '12px', border: `1px solid ${colors.borderLine}`, maxWidth: '600px', marginBottom: '3rem', fontSize: '0.95rem', color: colors.textSecondary, lineHeight: '1.5' }}>
+          💡 <strong>¿Cómo registro mi progreso?</strong><br/>
+          Dentro de la sesión verás tus ejercicios. A medida que termines cada <em>serie (set)</em> real, escribe los <strong>kg</strong> y las <strong>reps</strong> y pulsa el botón rojo <strong>(✓)</strong>. Puedes ir guardando serie a serie mientras descansas, o si lo prefieres, anotar todas las series juntas antes de pasar al siguiente ejercicio.
+        </div>
         
         <button 
           onClick={() => handleStartWorkout(null)}
@@ -180,6 +185,10 @@ const WorkoutSession = () => {
         >
           Terminar Entrenamiento
         </button>
+      </div>
+
+      <div style={{ background: 'rgba(217, 4, 41, 0.05)', border: `1px solid rgba(217, 4, 41, 0.3)`, padding: '1rem', borderRadius: '8px', marginBottom: '2rem', color: colors.textSecondary, fontSize: '0.9rem', lineHeight: '1.5' }}>
+        💡 <strong>Tip de guardado:</strong> Registra cada serie anotando el peso y las repeticiones y presionando el botón (✓). Puedes hacerlo tras terminar cada serie individual, o anotar todas las series juntas al terminar el ejercicio. ¡Siéntete libre de añadir más ejercicios a la sesión usando el menú de abajo!
       </div>
 
       {/* Selector para añadir más ejercicios en medio del entreno */}

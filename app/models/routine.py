@@ -22,6 +22,7 @@ class Routine(Base):
         Integer, ForeignKey("users.id"), nullable=False
     )
     is_public = Column(Boolean, default=False, nullable=False)
+    share_hash = Column(String(20), unique=True, index=True, nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

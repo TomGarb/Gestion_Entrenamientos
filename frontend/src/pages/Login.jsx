@@ -1,18 +1,32 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, register } = useContext(AuthContext);
+  const location = useLocation();
+  const { login, register, loginWithGoogle } = useContext(AuthContext);
   
   const [isRegistering, setIsRegistering] = useState(false);
   const [credentials, setCredentials] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
 
+  const queryParams = new URLSearchParams(location.search);
+  const redirectUrl = queryParams.get('redirect') || '/';
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCredentials(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      await loginWithGoogle(credentialResponse.credential);
+      navigate(redirectUrl);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error en Google Login');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -24,11 +38,10 @@ const Login = () => {
       } else {
         await login(credentials.username, credentials.password);
       }
-      navigate('/');
+      navigate(redirectUrl);
     } catch (err) {
       const detail = err.response?.data?.detail;
       if (Array.isArray(detail)) {
-        // Si es un error de validación de FastAPI (Pydantic), extraemos el primer mensaje
         setError(detail[0].msg || 'Error de validación en los datos ingresados');
       } else {
         setError(detail || 'Error de autenticación. Verifica tus datos o conexión.');
@@ -83,6 +96,12 @@ const Login = () => {
             {isRegistering ? 'Registrarse' : 'Ingresar'}
           </button>
         </form>
+        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('La conexión con Google falló')}
+          />
+        </div>
         <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem' }}>
           {isRegistering ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
           <button 

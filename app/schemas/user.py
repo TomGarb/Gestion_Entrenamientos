@@ -11,18 +11,23 @@ class UserResponse(BaseModel):
     username: str
     email: str
     theme_preference: str
+    is_admin: bool = False
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
     target_weight_kg: Optional[float] = None
+    share_calendar_with_friends: bool = True
 
     class Config:
         from_attributes = True
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    is_admin: Optional[bool] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
     target_weight_kg: Optional[float] = None
+    share_calendar_with_friends: Optional[bool] = None
 
 class UserPasswordUpdate(BaseModel):
     current_password: str
