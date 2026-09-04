@@ -13,19 +13,33 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Configuration
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Base CORS Configuration
 origins = [
-    "http://localhost:5173",  # Puerto por defecto de Vite (React)
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://gym-tracker-app-murex.vercel.app",  # Producción en Vercel
+    "https://gym-tracker-app-murex.vercel.app",
 ]
+
+# Agregar dinámicamente orígenes configurados en FRONTEND_URL (e.g. Vercel previews)
+frontend_env = os.getenv("FRONTEND_URL")
+if frontend_env:
+    for url in frontend_env.split(","):
+        clean_url = url.strip().rstrip("/")
+        if clean_url and clean_url not in origins:
+            origins.append(clean_url)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos HTTP (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Permite todos los headers
+    allow_methods=["*"],  # Permite GET, POST, PUT, DELETE, OPTIONS, etc.
+    allow_headers=["*"],  # Permite Authorization, Content-Type, etc.
+    allow_origin_regex=r"https://.*gym-tracker-app.*\.vercel\.app",  # Soporta Vercel preview deploys
 )
 
 # Ruta base de prueba
