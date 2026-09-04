@@ -17,8 +17,7 @@ import {
   RoutineIcon,
   CalendarIcon,
   UsersIcon,
-  PlayIcon,
-  SettingsIcon
+  PlayIcon
 } from './Icons';
 
 const MainLayout = () => {
@@ -65,12 +64,53 @@ const MainLayout = () => {
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)'
         }}>
+        {/* Top-Left: Logo, Avatar del usuario y acceso a Ajustes */}
         <div style={{ fontWeight: '700', fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
-          <Link to="/" style={{ color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ background: 'var(--accent)', borderRadius: '8px', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <DumbbellIcon size={16} color="#000000" strokeWidth={2.5} />
+          <Link 
+            to="/settings" 
+            style={{ 
+              color: 'var(--text-primary)', 
+              textDecoration: 'none', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.75rem',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              transition: 'all 0.2s ease'
+            }}
+            className="nav-link-item"
+            title="Ajustes y Perfil de Usuario"
+          >
+            <div style={{ 
+              width: '34px', 
+              height: '34px', 
+              borderRadius: '50%', 
+              overflow: 'hidden', 
+              background: 'var(--bg-card)', 
+              border: '2px solid var(--accent)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              {user?.avatar_url ? (
+                <img 
+                  src={user.avatar_url} 
+                  alt={user?.username || 'Perfil'} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              ) : (
+                <UserIcon size={18} color="var(--accent)" />
+              )}
             </div>
-            <span style={{ fontWeight: '800', letterSpacing: '-0.5px' }}>GymTracker</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontWeight: '800', fontSize: '1rem', letterSpacing: '-0.3px', lineHeight: '1.2' }}>
+                {user?.username ? user.username : 'GymTracker'}
+              </span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                Ajustes y Perfil
+              </span>
+            </div>
           </Link>
         </div>
 
@@ -132,7 +172,6 @@ const MainLayout = () => {
           <Link to="/routines" className={`nav-link-item ${isActive('/routines') ? 'active' : ''}`}>Rutinas</Link>
           <Link to="/calendar" className={`nav-link-item ${isActive('/calendar') ? 'active' : ''}`}>Calendario</Link>
           <Link to="/community" className={`nav-link-item ${isActive('/community') ? 'active' : ''}`}>Comunidad</Link>
-          <Link to="/settings" className={`nav-link-item ${isActive('/settings') ? 'active' : ''}`}>Config</Link>
           
           {user?.is_admin && (
             <Link to="/admin" className={`nav-link-item ${isActive('/admin') ? 'active' : ''}`} style={{ color: isActive('/admin') ? 'var(--accent)' : 'var(--text-secondary)' }}>
@@ -174,20 +213,49 @@ const MainLayout = () => {
           backgroundColor: 'var(--bg-primary)', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100,
           borderBottom: '1px solid var(--border-line)'
         }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Top-Left Móvil: Avatar con foto y nombre hacia Ajustes */}
+        <Link 
+          to="/settings" 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.75rem', 
+            textDecoration: 'none',
+            color: 'inherit'
+          }}
+          title="Ir a Configuración / Perfil"
+        >
           <div style={{ 
-            width: '34px', height: '34px', borderRadius: '50%', 
-            background: 'var(--bg-card)', border: '1px solid var(--border-line)', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--accent)'
+            width: '36px', 
+            height: '36px', 
+            borderRadius: '50%', 
+            overflow: 'hidden',
+            background: 'var(--bg-card)', 
+            border: '2px solid var(--accent)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            flexShrink: 0
           }}>
-            <UserIcon size={18} />
+            {user?.avatar_url ? (
+              <img 
+                src={user.avatar_url} 
+                alt={user?.username || 'Perfil'} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            ) : (
+              <UserIcon size={18} color="var(--accent)" />
+            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: '700', fontSize: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>GymTracker</span>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Analytics & Tracking</span>
+            <span style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+              {user?.username ? user.username : 'GymTracker'}
+            </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+              Ajustes y Perfil
+            </span>
           </div>
-        </div>
+        </Link>
 
         <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
           {/* Campanita Mobile */}
@@ -256,7 +324,7 @@ const MainLayout = () => {
         <NotificationDropdown onClose={() => setShowNotifications(false)} />
       )}
 
-      {/* 🚀 📱 Bottom Navigation (Solo Móvil - Propuesta C: Floating Island Dock con Expansión Activa) */}
+      {/* 🚀 📱 Bottom Navigation (Solo Móvil - Propuesta C: Floating Island Dock sin saturación) */}
       <div className="mobile-nav floating-dock-container">
         <nav className="floating-dock">
           
@@ -295,11 +363,6 @@ const MainLayout = () => {
               <span className="dock-label">Admin</span>
             </Link>
           )}
-
-          <Link to="/settings" className={`dock-item ${isActive('/settings') ? 'active' : ''}`} title="Configuración">
-            <SettingsIcon size={20} color={isActive('/settings') ? 'var(--accent)' : 'currentColor'} />
-            <span className="dock-label">Ajustes</span>
-          </Link>
 
         </nav>
       </div>

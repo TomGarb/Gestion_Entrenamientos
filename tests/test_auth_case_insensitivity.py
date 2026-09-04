@@ -1,4 +1,4 @@
-﻿import os
+import os
 os.environ["SECRET_KEY"] = "test-secret-key-12345"
 os.environ["TELEGRAM_BOT_TOKEN"] = "test-bot-token"
 
@@ -37,10 +37,12 @@ client = TestClient(app)
 class TestAuthAndAnalytics(unittest.TestCase):
 
     def setUp(self):
+        app.dependency_overrides[get_db] = override_get_db
         Base.metadata.create_all(bind=engine)
 
     def tearDown(self):
         Base.metadata.drop_all(bind=engine)
+        app.dependency_overrides.pop(get_db, None)
 
     def test_register_and_login_case_insensitivity(self):
         # 1. Registrar con mayúsculas y espacios
@@ -90,10 +92,11 @@ class TestAuthAndAnalytics(unittest.TestCase):
         )
         self.assertEqual(login_res_user.status_code, 200, login_res_user.text)
 
-        # 5. Actualizar perfil /me con mayúsculas y validar normalización
+        # 5. Actualizar perfil /me con mayúsculas y avatar_url y validar normalización
         update_payload = {
             "username": "  TomasNuevo  ",
-            "email": "  NuevoEmail@Example.COM  "
+            "email": "  NuevoEmail@Example.COM  ",
+            "avatar_url": "data:image/jpeg;base64,testavatarbase64string"
         }
         res_update = client.put(
             "/api/auth/me",
@@ -104,6 +107,7 @@ class TestAuthAndAnalytics(unittest.TestCase):
         updated_data = res_update.json()
         self.assertEqual(updated_data["username"], "tomasnuevo")
         self.assertEqual(updated_data["email"], "nuevoemail@example.com")
+        self.assertEqual(updated_data["avatar_url"], "data:image/jpeg;base64,testavatarbase64string")
 
     def test_activity_heatmap_levels(self):
         db = TestingSessionLocal()

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { generateLinkCode, testConnection } from '../services/telegramService';
 import { AuthContext } from '../context/AuthContext';
+import { UserIcon, ShieldIcon, CalendarIcon } from '../components/common/Icons';
 
 // --- Paleta "Soft Fitness" ---
 const colors = {
@@ -14,8 +15,8 @@ const colors = {
   borderLine: 'var(--border-line)',
   peachLight: 'var(--peach-light)',
   peachText: 'var(--peach-text)',
-  accentRed: 'var(--mint-gradient)',
-  successGreen: 'var(--mint-gradient)',
+  accentRed: 'var(--accent)',
+  successGreen: 'var(--accent)',
   danger: 'var(--danger)',
   inputBg: 'var(--bg-input)'
 };
@@ -23,6 +24,7 @@ const colors = {
 const Settings = () => {
   const { user, updateProfile, updatePassword } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('perfil');
+  const fileInputRef = useRef(null);
 
   // Telegram state
   const [code, setCode] = useState(null);
@@ -32,6 +34,7 @@ const Settings = () => {
   const [profileData, setProfileData] = useState({
     username: user?.username || '',
     email: user?.email || '',
+    avatar_url: user?.avatar_url || '',
     height_cm: user?.height_cm || '',
     weight_kg: user?.weight_kg || '',
     target_weight_kg: user?.target_weight_kg || '',
@@ -45,6 +48,7 @@ const Settings = () => {
       setProfileData({
         username: user.username || '',
         email: user.email || '',
+        avatar_url: user.avatar_url || '',
         height_cm: user.height_cm || '',
         weight_kg: user.weight_kg || '',
         target_weight_kg: user.target_weight_kg || '',
@@ -72,6 +76,50 @@ const Settings = () => {
   };
 
   // --- Handlers ---
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      showToast("La imagen supera los 8MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 320;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setProfileData(prev => ({ ...prev, avatar_url: dataUrl }));
+        showToast("Fotografía cargada. Guarda para aplicar.", true);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleGenerateCode = async () => {
     setLoadingCode(true);
     try {
@@ -100,6 +148,7 @@ const Settings = () => {
       const payload = {
         username: profileData.username.trim(),
         email: profileData.email.trim(),
+        avatar_url: profileData.avatar_url || null,
         height_cm: profileData.height_cm ? parseFloat(profileData.height_cm) : null,
         weight_kg: profileData.weight_kg ? parseFloat(profileData.weight_kg) : null,
         target_weight_kg: profileData.target_weight_kg ? parseFloat(profileData.target_weight_kg) : null,
@@ -174,11 +223,99 @@ const Settings = () => {
       {/* Content */}
       <section style={{ backgroundColor: colors.cardBg, padding: '2rem', borderRadius: '16px', border: `1px solid ${colors.borderLine}`, boxShadow: '0 10px 30px rgba(0,0,0,0.4)', maxWidth: '600px' }}>
         
-        {/* T pestaña: Perfil */}
+        {/* Pestaña: Perfil */}
         {activeTab === 'perfil' && (
           <form onSubmit={handleProfileSubmit}>
             <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: colors.textPrimary }}>Datos Físicos y Cuenta</h2>
             
+            {/* Foto de Perfil */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '1.25rem', 
+              marginBottom: '1.5rem', 
+              padding: '1rem', 
+              background: 'var(--bg-input)', 
+              borderRadius: '16px', 
+              border: `1px solid ${colors.borderLine}` 
+            }}>
+              <div style={{ 
+                position: 'relative', 
+                width: '70px', 
+                height: '70px', 
+                borderRadius: '50%', 
+                overflow: 'hidden', 
+                background: 'var(--bg-card)', 
+                border: '2px solid var(--accent)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                flexShrink: 0 
+              }}>
+                {profileData.avatar_url ? (
+                  <img 
+                    src={profileData.avatar_url} 
+                    alt={profileData.username} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  <UserIcon size={34} color="var(--accent)" />
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontWeight: '700', fontSize: '0.95rem', color: colors.textPrimary }}>Fotografía de Perfil</span>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={handleAvatarChange} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      background: 'var(--accent)',
+                      color: '#000000',
+                      border: 'none',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Subir Fotografía
+                  </button>
+
+                  {profileData.avatar_url && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileData(prev => ({ ...prev, avatar_url: '' }));
+                        showToast("Foto eliminada. Guarda los cambios para aplicar.", true);
+                      }}
+                      style={{
+                        background: 'transparent',
+                        color: 'var(--danger, #FF3B30)',
+                        border: '1px solid var(--border-line)',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Quitar Foto
+                    </button>
+                  )}
+                </div>
+                <span style={{ fontSize: '0.75rem', color: colors.textSecondary }}>Se optimizará y guardará en tu cuenta.</span>
+              </div>
+            </div>
+
             <label style={labelStyle}>Nombre de usuario</label>
             <input style={inputStyle} type="text" value={profileData.username} onChange={e => setProfileData({...profileData, username: e.target.value})} required />
 

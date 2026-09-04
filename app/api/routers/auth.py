@@ -108,6 +108,8 @@ def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_us
         current_user.target_weight_kg = user_update.target_weight_kg
     if user_update.share_calendar_with_friends is not None:
         current_user.share_calendar_with_friends = user_update.share_calendar_with_friends
+    if user_update.avatar_url is not None:
+        current_user.avatar_url = user_update.avatar_url
         
     db.commit()
     db.refresh(current_user)
@@ -136,6 +138,7 @@ def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
         )
         email = idinfo['email'].strip().lower()
         name = idinfo.get('given_name', email.split('@')[0])
+        picture = idinfo.get('picture')
     except ValueError:
         raise HTTPException(status_code=400, detail="Token de Google inválido")
         
@@ -149,7 +152,8 @@ def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
             
         user = User(
             username=username,
-            email=email
+            email=email,
+            avatar_url=picture
         )
         user.set_password(str(uuid.uuid4()))  # Contraseña aleatoria
         db.add(user)

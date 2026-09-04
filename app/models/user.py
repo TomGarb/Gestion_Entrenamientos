@@ -5,7 +5,7 @@ Modelo User - Gestión de cuentas de usuario puro SQLAlchemy.
 import bcrypt
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -17,6 +17,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(80), unique=True, nullable=False, index=True)
     email = Column(String(120), unique=True, nullable=False, index=True)
+    avatar_url = Column(Text, nullable=True)
     password_hash = Column(String(256), nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
     theme_preference = Column(String(10), default="dark", nullable=False)

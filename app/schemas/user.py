@@ -24,6 +24,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    avatar_url: Optional[str] = None
     theme_preference: str
     is_admin: bool = False
     height_cm: Optional[float] = None
@@ -37,6 +38,7 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
+    avatar_url: Optional[str] = None
     is_admin: Optional[bool] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
