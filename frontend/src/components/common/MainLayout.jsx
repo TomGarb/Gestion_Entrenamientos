@@ -4,6 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { NotificationContext } from '../../context/NotificationContext';
 import FeedbackModal from './FeedbackModal';
 import NotificationDropdown from './NotificationDropdown';
+import InitialSetupModal from './InitialSetupModal';
 import {
   BellIcon,
   LightbulbIcon,
@@ -368,6 +369,7 @@ const MainLayout = () => {
       </div>
 
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
+      <InitialSetupModal />
     </div>
   );
 };

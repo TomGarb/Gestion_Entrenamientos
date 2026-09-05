@@ -53,6 +53,23 @@ def add_workout_set(log_id: int, set_in: WorkoutSetCreate, db: Session = Depends
     if log.status != "in_progress":
         raise HTTPException(status_code=400, detail="Este entrenamiento ya fue finalizado")
         
+    # Validar límite estricto de series si el entrenamiento se basa en una rutina
+    if log.routine_id:
+        routine_ex = db.query(RoutineExercise).filter(
+            RoutineExercise.routine_id == log.routine_id,
+            RoutineExercise.exercise_id == set_in.exercise_id
+        ).first()
+        if routine_ex and routine_ex.sets:
+            current_count = db.query(WorkoutSet).filter(
+                WorkoutSet.workout_log_id == log_id,
+                WorkoutSet.exercise_id == set_in.exercise_id
+            ).count()
+            if current_count >= routine_ex.sets:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Límite alcanzado: Tu rutina permite un máximo de {routine_ex.sets} series para este ejercicio."
+                )
+
     # Calcular set number automático
     max_set = db.query(func.max(WorkoutSet.set_number)).filter(WorkoutSet.workout_log_id == log_id, WorkoutSet.exercise_id == set_in.exercise_id).scalar()
     next_set = (max_set or 0) + 1

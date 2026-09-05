@@ -23,8 +23,9 @@ def create_exercise(exercise: ExerciseCreate, db: Session = Depends(get_db), cur
     new_exercise = Exercise(
         name=exercise.name,
         muscle_group=exercise.muscle_group,
-        description=exercise.description,
-        equipment=exercise.equipment,
+        description=exercise.description or "",
+        equipment=exercise.equipment or "",
+        is_bodyweight=exercise.is_bodyweight,
         is_custom=True,
         user_id=current_user.id
     )
@@ -41,8 +42,9 @@ def update_exercise(exercise_id: int, exercise_data: ExerciseCreate, db: Session
     
     db_exercise.name = exercise_data.name
     db_exercise.muscle_group = exercise_data.muscle_group
-    db_exercise.description = exercise_data.description
-    db_exercise.equipment = exercise_data.equipment
+    db_exercise.description = exercise_data.description or ""
+    db_exercise.equipment = exercise_data.equipment or ""
+    db_exercise.is_bodyweight = exercise_data.is_bodyweight
     
     db.commit()
     db.refresh(db_exercise)

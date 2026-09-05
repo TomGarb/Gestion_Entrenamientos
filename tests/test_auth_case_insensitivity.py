@@ -65,7 +65,7 @@ class TestAuthAndAnalytics(unittest.TestCase):
         }
         res_dup = client.post("/api/auth/register", json=duplicate_payload)
         self.assertEqual(res_dup.status_code, 400)
-        self.assertIn("El usuario o email ya existe", res_dup.json()["detail"])
+        self.assertTrue(any(msg in res_dup.json()["detail"] for msg in ["ya está en uso", "ya existe"]))
 
         duplicate_email_payload = {
             "username": "anotheruser",

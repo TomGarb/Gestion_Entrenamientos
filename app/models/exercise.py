@@ -32,6 +32,7 @@ class Exercise(Base):
     equipment = Column(String(100), default="", nullable=False)
     description = Column(Text, default="", nullable=False)
     is_custom = Column(Boolean, default=False, nullable=False)
+    is_bodyweight = Column(Boolean, default=False, nullable=False)
     user_id = Column(
         Integer, ForeignKey("users.id"), nullable=True
     )

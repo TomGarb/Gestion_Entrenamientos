@@ -5,6 +5,12 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    peso: Optional[float] = None
+    altura: Optional[float] = None
+    weight_kg: Optional[float] = None
+    height_cm: Optional[float] = None
+    foto_perfil: Optional[str] = None
+    avatar_url: Optional[str] = None
 
     @field_validator('username', mode='before')
     @classmethod
@@ -25,11 +31,14 @@ class UserResponse(BaseModel):
     username: str
     email: str
     avatar_url: Optional[str] = None
+    foto_perfil: Optional[str] = None
     extra_data: Optional[Dict[str, Any]] = None
     theme_preference: str
     is_admin: bool = False
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    peso: Optional[float] = None
+    altura: Optional[float] = None
     target_weight_kg: Optional[float] = None
     share_calendar_with_friends: bool = True
 
@@ -40,10 +49,13 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     avatar_url: Optional[str] = None
+    foto_perfil: Optional[str] = None
     extra_data: Optional[Dict[str, Any]] = None
     is_admin: Optional[bool] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    peso: Optional[float] = None
+    altura: Optional[float] = None
     target_weight_kg: Optional[float] = None
     share_calendar_with_friends: Optional[bool] = None
 

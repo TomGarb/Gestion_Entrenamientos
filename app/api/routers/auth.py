@@ -21,26 +21,41 @@ class GoogleAuth(BaseModel):
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
+from sqlalchemy.exc import IntegrityError
+
 @router.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     clean_username = user.username.strip().lower()
     clean_email = str(user.email).strip().lower()
 
-    db_user = db.query(User).filter(
-        (func.lower(User.username) == clean_username) | (func.lower(User.email) == clean_email)
-    ).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="El usuario o email ya existe")
+    if db.query(User).filter(func.lower(User.username) == clean_username).first():
+        raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso. Por favor elige otro.")
+        
+    if db.query(User).filter(func.lower(User.email) == clean_email).first():
+        raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
     
+    height = user.altura if user.altura is not None else user.height_cm
+    weight = user.peso if user.peso is not None else user.weight_kg
+    foto = user.foto_perfil if user.foto_perfil is not None else user.avatar_url
+
     new_user = User(
         username=clean_username,
-        email=clean_email
+        email=clean_email,
+        height_cm=height,
+        weight_kg=weight,
+        foto_perfil=foto,
+        avatar_url=foto
     )
     new_user.set_password(user.password)
     
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="El nombre de usuario o correo ya está en uso.")
+        
     return new_user
 
 @router.post("/login", response_model=Token)
@@ -100,16 +115,26 @@ def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_us
             raise HTTPException(status_code=400, detail="El email ya está en uso")
         current_user.email = clean_email
 
-    if user_update.height_cm is not None:
+    if user_update.altura is not None:
+        current_user.height_cm = user_update.altura
+    elif user_update.height_cm is not None:
         current_user.height_cm = user_update.height_cm
-    if user_update.weight_kg is not None:
+
+    if user_update.peso is not None:
+        current_user.weight_kg = user_update.peso
+    elif user_update.weight_kg is not None:
         current_user.weight_kg = user_update.weight_kg
+
     if user_update.target_weight_kg is not None:
         current_user.target_weight_kg = user_update.target_weight_kg
     if user_update.share_calendar_with_friends is not None:
         current_user.share_calendar_with_friends = user_update.share_calendar_with_friends
-    if user_update.avatar_url is not None:
-        current_user.avatar_url = user_update.avatar_url
+        
+    foto = user_update.foto_perfil if user_update.foto_perfil is not None else user_update.avatar_url
+    if foto is not None:
+        current_user.foto_perfil = foto
+        current_user.avatar_url = foto
+
     if user_update.extra_data is not None:
         current_extra = dict(current_user.extra_data) if current_user.extra_data else {}
         for key, val in user_update.extra_data.items():
@@ -119,8 +144,13 @@ def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_us
                 current_extra[key] = val
         current_user.extra_data = current_extra
         
-    db.commit()
-    db.refresh(current_user)
+    try:
+        db.commit()
+        db.refresh(current_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="El nombre de usuario o correo ya está en uso.")
+
     return current_user
 
 @router.put("/me/password")
@@ -161,12 +191,17 @@ def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
         user = User(
             username=username,
             email=email,
+            foto_perfil=picture,
             avatar_url=picture
         )
         user.set_password(str(uuid.uuid4()))  # Contraseña aleatoria
         db.add(user)
         db.commit()
         db.refresh(user)
+    elif picture and not user.foto_perfil:
+        user.foto_perfil = picture
+        user.avatar_url = picture
+        db.commit()
         
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
