@@ -14,3 +14,4 @@ email-validator>=2.1.1
 python-multipart>=0.0.9
 pyTelegramBotAPI>=4.15.0
 google-auth>=2.27.0
+alembic>=1.13.0

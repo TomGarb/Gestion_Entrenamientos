@@ -4,7 +4,7 @@ import { getExercises, createExercise, deleteExercise } from '../services/exerci
 const Exercises = () => {
   const [exercises, setExercises] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ name: '', muscle_group: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', muscle_group: '', description: '', equipment: '', is_bodyweight: false });
   
   // Nuevo estado para el filtro
   const [selectedGroup, setSelectedGroup] = useState('Todos');
@@ -24,7 +24,8 @@ const Exercises = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   const handleSubmit = async (e) => {
@@ -33,7 +34,7 @@ const Exercises = () => {
       const newExercise = await createExercise(formData);
       setExercises([...exercises, newExercise]);
       setShowModal(false);
-      setFormData({ name: '', muscle_group: '', description: '' });
+      setFormData({ name: '', muscle_group: '', description: '', equipment: '', is_bodyweight: false });
     } catch (error) {
       console.error("Error creando ejercicio", error);
       alert("Hubo un error al crear el ejercicio.");
@@ -103,9 +104,16 @@ const Exercises = () => {
         {displayedExercises.map(ex => (
           <div key={ex.id} className="glass-panel" style={{ padding: '1.5rem', position: 'relative' }}>
             <h3 style={{ marginTop: 0, color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: '600', marginBottom: '0.75rem' }}>{ex.name}</h3>
-            <span style={{ display: 'inline-block', padding: '0.2rem 0.6rem', border: '1px solid var(--border-line)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '0.75rem', marginBottom: '1rem', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px' }}>
-              {ex.muscle_group}
-            </span>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+              <span style={{ display: 'inline-block', padding: '0.2rem 0.6rem', border: '1px solid var(--border-line)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px' }}>
+                {ex.muscle_group}
+              </span>
+              {ex.is_bodyweight && (
+                <span style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: 'rgba(52, 199, 89, 0.15)', color: 'var(--accent, #34c759)', border: '1px solid rgba(52, 199, 89, 0.3)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '600' }}>
+                  ⚖️ Peso Corporal
+                </span>
+              )}
+            </div>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>{ex.description || "Sin descripción detallada."}</p>
             
             {ex.is_custom && (
@@ -144,10 +152,26 @@ const Exercises = () => {
                 <option value="cardio">Cardio</option>
                 <option value="otro">Otro</option>
               </select>
+              <input 
+                name="equipment" value={formData.equipment} onChange={handleChange} 
+                placeholder="Equipamiento (ej. Peso corporal, Mancuernas, Barra...)" 
+              />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '0.25rem 0' }}>
+                <input 
+                  type="checkbox"
+                  name="is_bodyweight"
+                  checked={formData.is_bodyweight}
+                  onChange={handleChange}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+                />
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                  ¿Utiliza peso corporal? (ej. dominadas, fondos, flexiones)
+                </span>
+              </label>
               <textarea 
                 name="description" value={formData.description} onChange={handleChange} 
                 placeholder="Descripción opcional" 
-                style={{ minHeight: '100px', resize: 'vertical' }}
+                style={{ minHeight: '80px', resize: 'vertical' }}
               />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', fontWeight: '600' }}>Cancelar</button>

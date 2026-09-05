@@ -28,10 +28,27 @@ class User(Base):
     telegram_chat_id = Column(String(64), unique=True, nullable=True)
     telegram_sync_token = Column(String(6), unique=True, nullable=True)
 
-    # Physical Attributes
+    # Physical Attributes & Profile
     height_cm = Column(Float, nullable=True)
     weight_kg = Column(Float, nullable=True)
     target_weight_kg = Column(Float, nullable=True)
+    foto_perfil = Column(String(500), nullable=True)
+
+    @property
+    def peso(self) -> float | None:
+        return self.weight_kg
+
+    @peso.setter
+    def peso(self, value: float | None):
+        self.weight_kg = value
+
+    @property
+    def altura(self) -> float | None:
+        return self.height_cm
+
+    @altura.setter
+    def altura(self, value: float | None):
+        self.height_cm = value
 
     # Privacy Settings
     share_calendar_with_friends = Column(Boolean, default=True, nullable=False)

@@ -44,15 +44,22 @@ export const AuthProvider = ({ children }) => {
     setToken(response.data.access_token);
   };
 
-  const register = async (username, email, password) => {
-    await api.post('/api/auth/register', { username, email, password });
+  const register = async (usernameOrData, email, password, extra = {}) => {
+    let payload = {};
+    if (typeof usernameOrData === 'object' && usernameOrData !== null) {
+      payload = usernameOrData;
+    } else {
+      payload = { username: usernameOrData, email, password, ...extra };
+    }
+    await api.post('/api/auth/register', payload);
     // Tras registrar, autologueamos
-    await login(username, password);
+    await login(payload.username, payload.password);
   };
 
   const updateProfile = async (userData) => {
     const response = await api.put('/api/auth/me', userData);
     setUser({ ...response.data, isAuthenticated: true });
+    return response.data;
   };
 
   const updatePassword = async (currentPassword, newPassword) => {
@@ -71,10 +78,28 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
+  const isProfileComplete = Boolean(
+    user && 
+    (user.weight_kg || user.peso) && 
+    (Number(user.weight_kg || user.peso) > 0) && 
+    (user.height_cm || user.altura) && 
+    (Number(user.height_cm || user.altura) > 0)
+  );
+
   if (loading) return null; // Wait for initial user fetch
 
   return (
-    <AuthContext.Provider value={{ user, login, register, loginWithGoogle, logout, updateProfile, updatePassword }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isProfileComplete, 
+      login, 
+      register, 
+      loginWithGoogle, 
+      logout, 
+      updateProfile, 
+      updatePassword,
+      fetchUser 
+    }}>
       {children}
     </AuthContext.Provider>
   );

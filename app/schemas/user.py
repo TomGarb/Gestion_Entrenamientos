@@ -5,6 +5,11 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    peso: Optional[float] = None
+    altura: Optional[float] = None
+    weight_kg: Optional[float] = None
+    height_cm: Optional[float] = None
+    foto_perfil: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: int
@@ -14,7 +19,10 @@ class UserResponse(BaseModel):
     is_admin: bool = False
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    peso: Optional[float] = None
+    altura: Optional[float] = None
     target_weight_kg: Optional[float] = None
+    foto_perfil: Optional[str] = None
     share_calendar_with_friends: bool = True
 
     class Config:
@@ -26,7 +34,10 @@ class UserUpdate(BaseModel):
     is_admin: Optional[bool] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    peso: Optional[float] = None
+    altura: Optional[float] = None
     target_weight_kg: Optional[float] = None
+    foto_perfil: Optional[str] = None
     share_calendar_with_friends: Optional[bool] = None
 
 class UserPasswordUpdate(BaseModel):

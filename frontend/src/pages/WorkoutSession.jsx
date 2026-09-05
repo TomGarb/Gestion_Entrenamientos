@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import { startWorkout, addSet, removeSet, finishWorkout } from '../services/workoutService';
 import { getExercises } from '../services/exerciseService';
 import { getRoutines } from '../services/routineService';
@@ -24,7 +25,9 @@ const colors = {
 
 const WorkoutSession = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [activeLog, setActiveLog] = useState(null);
+  const [activeRoutine, setActiveRoutine] = useState(null);
   
   // Catálogos
   const [routines, setRoutines] = useState([]);
@@ -38,6 +41,7 @@ const WorkoutSession = () => {
 
   // Ejercicios activos en la sesión actual
   const [activeExercises, setActiveExercises] = useState([]);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     fetchCatalogs();
@@ -55,6 +59,7 @@ const WorkoutSession = () => {
   };
 
   const handleStartWorkout = async (routineId = null) => {
+    setErrorMsg('');
     try {
       const log = await startWorkout({ routine_id: routineId, notes: '' });
       setActiveLog(log);
@@ -63,12 +68,16 @@ const WorkoutSession = () => {
       if (routineId) {
         const routine = routines.find(r => r.id === routineId);
         if (routine) {
+          setActiveRoutine(routine);
           const mappedEx = routine.routine_exercises.map(rx => rx.exercise);
           setActiveExercises(mappedEx);
         }
+      } else {
+        setActiveRoutine(null);
       }
     } catch (err) {
       console.error("Error iniciando", err);
+      setErrorMsg(err.response?.data?.detail || "Error al iniciar el entrenamiento");
     }
   };
 
@@ -89,14 +98,34 @@ const WorkoutSession = () => {
     });
   };
 
-  const handleSaveSet = async (exerciseId) => {
-    const input = currentInputs[exerciseId];
-    if (!input || !input.weight || !input.reps) return;
+  const isBwExercise = (ex) => {
+    if (!ex) return false;
+    return Boolean(
+      ex.is_bodyweight || 
+      (ex.equipment && ex.equipment.toLowerCase().includes('peso corporal'))
+    );
+  };
+
+  const handleSaveSet = async (exercise) => {
+    setErrorMsg('');
+    const input = currentInputs[exercise.id];
+    if (!input || input.reps === undefined || input.reps === '') return;
+    
+    const userWeight = Number(user?.weight_kg || user?.peso || 0);
+    const isBw = isBwExercise(exercise);
+    
+    let finalWeight = 0;
+    if (isBw) {
+      const addedWeight = input.weight !== '' && !isNaN(input.weight) ? parseFloat(input.weight) : 0;
+      finalWeight = userWeight + addedWeight;
+    } else {
+      finalWeight = parseFloat(input.weight || 0);
+    }
     
     try {
       const newSet = await addSet(activeLog.id, {
-        exercise_id: exerciseId,
-        weight_kg: parseFloat(input.weight),
+        exercise_id: exercise.id,
+        weight_kg: finalWeight,
         reps_completed: parseInt(input.reps)
       });
       
@@ -105,10 +134,11 @@ const WorkoutSession = () => {
       // Limpiar inputs
       setCurrentInputs({
         ...currentInputs,
-        [exerciseId]: { weight: '', reps: '' }
+        [exercise.id]: { weight: '', reps: '' }
       });
     } catch (err) {
-      console.error("Error guardando set", err);
+      const detail = err.response?.data?.detail || "Error al guardar la serie";
+      setErrorMsg(detail);
     }
   };
 
@@ -142,12 +172,18 @@ const WorkoutSession = () => {
         
         <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '12px', border: `1px solid ${colors.borderLine}`, maxWidth: '600px', marginBottom: '3rem', fontSize: '0.95rem', color: colors.textSecondary, lineHeight: '1.5' }}>
           💡 <strong>¿Cómo registro mi progreso?</strong><br/>
-          Dentro de la sesión verás tus ejercicios. A medida que termines cada <em>serie (set)</em> real, escribe los <strong>kg</strong> y las <strong>reps</strong> y pulsa el botón rojo <strong>(✓)</strong>. Puedes ir guardando serie a serie mientras descansas, o si lo prefieres, anotar todas las series juntas antes de pasar al siguiente ejercicio.
+          Dentro de la sesión verás tus ejercicios. A medida que termines cada <em>serie (set)</em> real, escribe los <strong>kg</strong> (o lastre adicional en peso corporal) y las <strong>reps</strong> y pulsa el botón <strong>(✓)</strong>. Puedes ir guardando serie a serie mientras descansas.
         </div>
         
+        {errorMsg && (
+          <div style={{ color: 'red', backgroundColor: '#ffeef0', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+            {errorMsg}
+          </div>
+        )}
+
         <button 
           onClick={() => handleStartWorkout(null)}
-          style={{ width: '100%', maxWidth: '400px', padding: '1.5rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.2rem', fontWeight: 'bold', cursor: 'pointer', marginBottom: '3rem', boxShadow: '0 8px 20px rgba(217, 4, 41, 0.4)' }}
+          style={{ width: '100%', maxWidth: '400px', padding: '1.5rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.2rem', fontWeight: 'bold', cursor: 'pointer', marginBottom: '3rem', boxShadow: '0 8px 20px rgba(52, 199, 89, 0.3)' }}
         >
           Iniciar Entrenamiento Libre
         </button>
@@ -161,7 +197,7 @@ const WorkoutSession = () => {
               style={{ padding: '1.5rem', background: colors.cardBg, color: 'white', border: `1px solid ${colors.borderLine}`, borderRadius: '12px', fontSize: '1.1rem', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
               <span>{r.name}</span>
-              <span style={{ color: colors.accentRed }}>▶</span>
+              <span style={{ color: 'var(--accent, #34c759)' }}>▶</span>
             </button>
           ))}
         </div>
@@ -177,7 +213,7 @@ const WorkoutSession = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.borderLine}` }}>
         <div>
           <span style={{ background: colors.accentRed, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', marginRight: '1rem' }}>EN CURSO</span>
-          <span style={{ color: colors.textSecondary }}>Log #{activeLog.id}</span>
+          <span style={{ color: colors.textSecondary }}>Log #{activeLog.id} {activeRoutine ? `• ${activeRoutine.name}` : '• Libre'}</span>
         </div>
         <button 
           onClick={handleFinish}
@@ -187,9 +223,12 @@ const WorkoutSession = () => {
         </button>
       </div>
 
-      <div style={{ background: 'rgba(217, 4, 41, 0.05)', border: `1px solid rgba(217, 4, 41, 0.3)`, padding: '1rem', borderRadius: '8px', marginBottom: '2rem', color: colors.textSecondary, fontSize: '0.9rem', lineHeight: '1.5' }}>
-        💡 <strong>Tip de guardado:</strong> Registra cada serie anotando el peso y las repeticiones y presionando el botón (✓). Puedes hacerlo tras terminar cada serie individual, o anotar todas las series juntas al terminar el ejercicio. ¡Siéntete libre de añadir más ejercicios a la sesión usando el menú de abajo!
-      </div>
+      {errorMsg && (
+        <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#fca5a5', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>⚠️ {errorMsg}</span>
+          <button onClick={() => setErrorMsg('')} style={{ background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+        </div>
+      )}
 
       {/* Selector para añadir más ejercicios en medio del entreno */}
       <div style={{ marginBottom: '2rem' }}>
@@ -210,49 +249,124 @@ const WorkoutSession = () => {
         {activeExercises.map(ex => {
           const exSets = savedSets.filter(s => s.exercise_id === ex.id);
           const currentInput = currentInputs[ex.id] || { weight: '', reps: '' };
+          const isBw = isBwExercise(ex);
+          const userWeight = Number(user?.weight_kg || user?.peso || 0);
+
+          // Comprobar límite de series si proviene de una rutina
+          let maxSets = null;
+          if (activeRoutine && activeRoutine.routine_exercises) {
+            const rEx = activeRoutine.routine_exercises.find(rx => rx.exercise_id === ex.id || rx.exercise?.id === ex.id);
+            if (rEx && rEx.sets) {
+              maxSets = rEx.sets;
+            }
+          }
+
+          const limitReached = maxSets !== null && exSets.length >= maxSets;
+          const addedKg = currentInput.weight !== '' && !isNaN(currentInput.weight) ? parseFloat(currentInput.weight) : 0;
+          const totalBwKg = userWeight + addedKg;
 
           return (
             <div key={ex.id} style={{ background: colors.cardBg, padding: '1.5rem', borderRadius: '12px', border: `1px solid ${colors.borderLine}` }}>
-              <h2 style={{ marginTop: 0, color: colors.textPrimary, borderBottom: `1px solid ${colors.borderLine}`, paddingBottom: '0.5rem' }}>{ex.name}</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `1px solid ${colors.borderLine}`, paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+                <div>
+                  <h2 style={{ margin: 0, color: colors.textPrimary, fontSize: '1.25rem' }}>{ex.name}</h2>
+                  {isBw && (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--accent, #34c759)', fontWeight: '600', marginTop: '4px', display: 'inline-block' }}>
+                      ⚖️ Ejercicio con peso corporal (Tu peso: {userWeight > 0 ? `${userWeight} kg` : 'no definido'})
+                    </span>
+                  )}
+                </div>
+                {maxSets !== null && (
+                  <span style={{
+                    padding: '0.3rem 0.6rem',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    fontWeight: '700',
+                    backgroundColor: limitReached ? 'rgba(52, 199, 89, 0.2)' : 'rgba(255,255,255,0.08)',
+                    color: limitReached ? 'var(--accent, #34c759)' : colors.textSecondary
+                  }}>
+                    {limitReached ? `✓ Completado (${exSets.length}/${maxSets})` : `Series: ${exSets.length} / ${maxSets}`}
+                  </span>
+                )}
+              </div>
               
               {/* Sets guardados (Read-only) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-                {exSets.map((set, idx) => (
-                  <div key={set.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: colors.grayedOut, padding: '0.75rem', borderRadius: '6px' }}>
-                    <span style={{ width: '40px', fontWeight: 'bold', color: colors.textSecondary }}>{idx + 1}</span>
-                    <span>{set.weight_kg} kg</span>
-                    <span>x {set.reps_completed} reps</span>
-                    <button 
-                      onClick={() => handleRemoveSet(set.id)}
-                      style={{ background: 'none', border: 'none', color: colors.accentRed, cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem' }}
-                      title="Deshacer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                {exSets.map((set, idx) => {
+                  let displayWeight = `${set.weight_kg} kg`;
+                  if (isBw && userWeight > 0) {
+                    const diff = Math.round((set.weight_kg - userWeight) * 10) / 10;
+                    if (diff > 0) {
+                      displayWeight = `${set.weight_kg} kg (${userWeight} + ${diff} lastre)`;
+                    } else if (diff === 0) {
+                      displayWeight = `${set.weight_kg} kg (corporal)`;
+                    }
+                  }
+
+                  return (
+                    <div key={set.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.borderLine}`, padding: '0.75rem 1rem', borderRadius: '8px' }}>
+                      <span style={{ width: '40px', fontWeight: 'bold', color: colors.textSecondary }}>#{idx + 1}</span>
+                      <span style={{ fontWeight: '600' }}>{displayWeight}</span>
+                      <span>x {set.reps_completed} reps</span>
+                      <button 
+                        onClick={() => handleRemoveSet(set.id)}
+                        style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem' }}
+                        title="Eliminar serie"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Fila de Input Activo */}
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <span style={{ width: '40px', fontWeight: 'bold', color: colors.accentRed }}>{exSets.length + 1}</span>
-                <input 
-                  type="number" step="0.5" placeholder="kg" 
-                  value={currentInput.weight} onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
-                  style={inputStyle} 
-                />
-                <input 
-                  type="number" placeholder="reps" 
-                  value={currentInput.reps} onChange={(e) => handleInputChange(ex.id, 'reps', e.target.value)}
-                  style={inputStyle} 
-                />
-                <button 
-                  onClick={() => handleSaveSet(ex.id)}
-                  style={{ padding: '0.75rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  ✓
-                </button>
-              </div>
+              {limitReached ? (
+                <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(52, 199, 89, 0.1)', borderRadius: '8px', color: 'var(--accent, #34c759)', fontSize: '0.9rem', fontWeight: '600' }}>
+                  🎉 Has alcanzado el objetivo de {maxSets} series pautado en tu rutina para este ejercicio.
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <span style={{ width: '40px', fontWeight: 'bold', color: colors.accentRed }}>#{exSets.length + 1}</span>
+                    <input 
+                      type="number" step="0.5" 
+                      placeholder={isBw ? "+ lastre kg (0)" : "kg"} 
+                      value={currentInput.weight} 
+                      onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
+                      style={inputStyle} 
+                    />
+                    <input 
+                      type="number" placeholder="reps" 
+                      value={currentInput.reps} 
+                      onChange={(e) => handleInputChange(ex.id, 'reps', e.target.value)}
+                      style={inputStyle} 
+                    />
+                    <button 
+                      onClick={() => handleSaveSet(ex)}
+                      style={{ padding: '0.75rem 1.25rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                      title="Guardar serie"
+                    >
+                      ✓
+                    </button>
+                  </div>
+
+                  {/* Detalle visual dinámico para ejercicios de peso corporal */}
+                  {isBw && (
+                    <div style={{ fontSize: '0.8rem', color: colors.textSecondary, marginTop: '0.5rem', marginLeft: '45px' }}>
+                      {userWeight > 0 ? (
+                        <>
+                          💡 Carga total calculada: <strong>{totalBwKg} kg</strong> {addedKg > 0 ? `(${userWeight} corporal + ${addedKg} lastre)` : `(peso corporal)`}
+                        </>
+                      ) : (
+                        <span style={{ color: '#fca5a5' }}>
+                          ⚠️ No tienes configurado tu peso corporal. Se usará solo el valor ingresado.
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -264,12 +378,13 @@ const WorkoutSession = () => {
 const inputStyle = {
   flex: 1,
   padding: '0.75rem',
-  background: '#0A1128',
-  border: `1px solid #1E325C`,
-  borderRadius: '6px',
-  color: 'white',
+  background: 'var(--bg-input, rgba(255,255,255,0.05))',
+  border: `1px solid var(--border-line, rgba(255,255,255,0.15))`,
+  borderRadius: '8px',
+  color: 'inherit',
   textAlign: 'center',
-  fontSize: '1.1rem'
+  fontSize: '1rem'
 };
 
 export default WorkoutSession;
+

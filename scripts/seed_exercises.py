@@ -108,18 +108,22 @@ def seed_db():
         for ex_data in EXERCISES_DATA:
             # Comprobar si ya existe un ejercicio con ese nombre (ignorar mayúsculas/minúsculas)
             existing = db.query(Exercise).filter(Exercise.name.ilike(ex_data["name"])).first()
+            is_bw = "peso corporal" in ex_data["equipment"].lower()
             if not existing:
                 new_exercise = Exercise(
                     name=ex_data["name"],
                     muscle_group=ex_data["muscle_group"],
                     equipment=ex_data["equipment"],
-                    description=f"Ejercicio compuesto para {ex_data['muscle_group']}.",
+                    description=f"Ejercicio para {ex_data['muscle_group']}.",
                     is_custom=False,
+                    is_bodyweight=is_bw,
                     user_id=None # Es un ejercicio global del sistema
                 )
                 db.add(new_exercise)
                 added_count += 1
             else:
+                if existing.is_bodyweight != is_bw:
+                    existing.is_bodyweight = is_bw
                 skipped_count += 1
         
         db.commit()

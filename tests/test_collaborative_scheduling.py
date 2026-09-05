@@ -40,10 +40,12 @@ client = TestClient(app)
 class TestCollaborativeWorkoutScheduling(unittest.TestCase):
 
     def setUp(self):
+        app.dependency_overrides[get_db] = override_get_db
         Base.metadata.create_all(bind=engine)
 
     def tearDown(self):
         Base.metadata.drop_all(bind=engine)
+        app.dependency_overrides.pop(get_db, None)
 
     def test_collaborative_workout_scheduling_flow(self):
         db = TestingSessionLocal()

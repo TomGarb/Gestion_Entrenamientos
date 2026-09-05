@@ -15,6 +15,8 @@ import os
 import uuid
 from pydantic import BaseModel
 
+from sqlalchemy.exc import IntegrityError
+
 class GoogleAuth(BaseModel):
     token: str
 
@@ -22,19 +24,35 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter((User.username == user.username) | (User.email == user.email)).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="El usuario o email ya existe")
+    clean_username = user.username.strip()
+    clean_email = user.email.strip().lower()
+
+    if db.query(User).filter(User.username.ilike(clean_username)).first():
+        raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso. Por favor elige otro.")
+        
+    if db.query(User).filter(User.email.ilike(clean_email)).first():
+        raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
     
+    height = user.altura if user.altura is not None else user.height_cm
+    weight = user.peso if user.peso is not None else user.weight_kg
+
     new_user = User(
-        username=user.username,
-        email=user.email
+        username=clean_username,
+        email=clean_email,
+        height_cm=height,
+        weight_kg=weight,
+        foto_perfil=user.foto_perfil
     )
     new_user.set_password(user.password)
     
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="El nombre de usuario o correo ya está en uso.")
+        
     return new_user
 
 @router.post("/login", response_model=Token)
@@ -75,29 +93,42 @@ def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_us
     if user_update.username is not None and user_update.username.strip():
         new_username = user_update.username.strip()
         # Check if username is taken by another user
-        existing = db.query(User).filter(User.username == new_username, User.id != current_user.id).first()
+        existing = db.query(User).filter(User.username.ilike(new_username), User.id != current_user.id).first()
         if existing:
             raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
         current_user.username = new_username
     
     if user_update.email is not None and str(user_update.email).strip():
-        new_email = str(user_update.email).strip()
-        existing_email = db.query(User).filter(User.email == new_email, User.id != current_user.id).first()
+        new_email = str(user_update.email).strip().lower()
+        existing_email = db.query(User).filter(User.email.ilike(new_email), User.id != current_user.id).first()
         if existing_email:
             raise HTTPException(status_code=400, detail="El email ya está en uso")
         current_user.email = new_email
 
-    if user_update.height_cm is not None:
+    if user_update.altura is not None:
+        current_user.height_cm = user_update.altura
+    elif user_update.height_cm is not None:
         current_user.height_cm = user_update.height_cm
-    if user_update.weight_kg is not None:
+
+    if user_update.peso is not None:
+        current_user.weight_kg = user_update.peso
+    elif user_update.weight_kg is not None:
         current_user.weight_kg = user_update.weight_kg
+
     if user_update.target_weight_kg is not None:
         current_user.target_weight_kg = user_update.target_weight_kg
+    if user_update.foto_perfil is not None:
+        current_user.foto_perfil = user_update.foto_perfil
     if user_update.share_calendar_with_friends is not None:
         current_user.share_calendar_with_friends = user_update.share_calendar_with_friends
         
-    db.commit()
-    db.refresh(current_user)
+    try:
+        db.commit()
+        db.refresh(current_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="El nombre de usuario o correo ya está en uso.")
+        
     return current_user
 
 @router.put("/me/password")
@@ -123,10 +154,11 @@ def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
         )
         email = idinfo['email']
         name = idinfo.get('given_name', email.split('@')[0])
+        picture = idinfo.get('picture')
     except ValueError:
         raise HTTPException(status_code=400, detail="Token de Google inválido")
         
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.email.ilike(email)).first()
     if not user:
         # Create a new user with random password
         base_username = name.lower().replace(" ", "")
@@ -136,12 +168,16 @@ def google_auth(google_data: GoogleAuth, db: Session = Depends(get_db)):
             
         user = User(
             username=username,
-            email=email
+            email=email,
+            foto_perfil=picture
         )
         user.set_password(str(uuid.uuid4()))  # Contraseña aleatoria
         db.add(user)
         db.commit()
         db.refresh(user)
+    elif picture and not user.foto_perfil:
+        user.foto_perfil = picture
+        db.commit()
         
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
