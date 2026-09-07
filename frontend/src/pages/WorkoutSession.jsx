@@ -43,6 +43,8 @@ const WorkoutSession = () => {
   const [activeExercises, setActiveExercises] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const [savingExerciseId, setSavingExerciseId] = useState(null);
+
   useEffect(() => {
     fetchCatalogs();
   }, []);
@@ -51,8 +53,8 @@ const WorkoutSession = () => {
     try {
       const r = await getRoutines();
       const e = await getExercises();
-      setRoutines(r);
-      setExercises(e);
+      setRoutines(r || []);
+      setExercises(e || []);
     } catch (err) {
       console.error("Error al cargar datos", err);
     }
@@ -63,21 +65,26 @@ const WorkoutSession = () => {
     try {
       const log = await startWorkout({ routine_id: routineId, notes: '' });
       setActiveLog(log);
+      setSavedSets(log.sets || []);
       
       // Si se escogió una rutina, cargar sus ejercicios en la vista activa
       if (routineId) {
         const routine = routines.find(r => r.id === routineId);
         if (routine) {
           setActiveRoutine(routine);
-          const mappedEx = routine.routine_exercises.map(rx => rx.exercise);
+          const mappedEx = (routine.routine_exercises || [])
+            .map(rx => rx.exercise || exercises.find(e => e.id === rx.exercise_id))
+            .filter(Boolean);
           setActiveExercises(mappedEx);
         }
       } else {
         setActiveRoutine(null);
+        setActiveExercises([]);
       }
     } catch (err) {
-      console.error("Error iniciando", err);
-      setErrorMsg(err.response?.data?.detail || "Error al iniciar el entrenamiento");
+      console.error("Error iniciando entrenamiento", err);
+      const detail = err.response?.data?.detail;
+      setErrorMsg(typeof detail === 'string' ? detail : "Error al iniciar el entrenamiento");
     }
   };
 
@@ -109,8 +116,13 @@ const WorkoutSession = () => {
   const handleSaveSet = async (exercise) => {
     setErrorMsg('');
     const input = currentInputs[exercise.id];
-    if (!input || input.reps === undefined || input.reps === '') return;
     
+    if (!input || input.reps === undefined || input.reps === '' || isNaN(parseInt(input.reps, 10)) || parseInt(input.reps, 10) <= 0) {
+      setErrorMsg(`Por favor ingresa un número válido de repeticiones (mayor a 0) para ${exercise.name}.`);
+      return;
+    }
+    
+    const reps = parseInt(input.reps, 10);
     const userWeight = Number(user?.weight_kg || user?.peso || 0);
     const isBw = isBwExercise(exercise);
     
@@ -119,33 +131,45 @@ const WorkoutSession = () => {
       const addedWeight = input.weight !== '' && !isNaN(input.weight) ? parseFloat(input.weight) : 0;
       finalWeight = userWeight + addedWeight;
     } else {
-      finalWeight = parseFloat(input.weight || 0);
+      finalWeight = input.weight !== '' && !isNaN(input.weight) ? parseFloat(input.weight) : 0;
     }
     
     try {
+      setSavingExerciseId(exercise.id);
       const newSet = await addSet(activeLog.id, {
         exercise_id: exercise.id,
         weight_kg: finalWeight,
-        reps_completed: parseInt(input.reps)
+        reps_completed: reps
       });
       
-      setSavedSets([...savedSets, newSet]);
+      setSavedSets(prev => [...prev, newSet]);
       
       // Limpiar inputs
-      setCurrentInputs({
-        ...currentInputs,
+      setCurrentInputs(prev => ({
+        ...prev,
         [exercise.id]: { weight: '', reps: '' }
-      });
+      }));
     } catch (err) {
-      const detail = err.response?.data?.detail || "Error al guardar la serie";
-      setErrorMsg(detail);
+      console.error("Error al guardar serie", err);
+      const detail = err.response?.data?.detail;
+      let formattedError = "Error al guardar la serie";
+      if (Array.isArray(detail)) {
+        formattedError = detail.map(d => d.msg || JSON.stringify(d)).join(', ');
+      } else if (typeof detail === 'object' && detail !== null) {
+        formattedError = detail.msg || JSON.stringify(detail);
+      } else if (typeof detail === 'string') {
+        formattedError = detail;
+      }
+      setErrorMsg(formattedError);
+    } finally {
+      setSavingExerciseId(null);
     }
   };
 
   const handleRemoveSet = async (setId) => {
     try {
       await removeSet(setId);
-      setSavedSets(savedSets.filter(s => s.id !== setId));
+      setSavedSets(prev => prev.filter(s => s.id !== setId));
     } catch (err) {
       console.error("Error borrando set", err);
     }
@@ -334,20 +358,37 @@ const WorkoutSession = () => {
                       placeholder={isBw ? "+ lastre kg (0)" : "kg"} 
                       value={currentInput.weight} 
                       onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveSet(ex)}
                       style={inputStyle} 
                     />
                     <input 
                       type="number" placeholder="reps" 
                       value={currentInput.reps} 
                       onChange={(e) => handleInputChange(ex.id, 'reps', e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveSet(ex)}
                       style={inputStyle} 
                     />
                     <button 
+                      type="button"
                       onClick={() => handleSaveSet(ex)}
-                      style={{ padding: '0.75rem 1.25rem', background: colors.accentRed, color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                      disabled={savingExerciseId === ex.id}
+                      style={{ 
+                        padding: '0.75rem 1.25rem', 
+                        background: savingExerciseId === ex.id ? 'rgba(255,255,255,0.2)' : colors.accentRed, 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '8px', 
+                        cursor: savingExerciseId === ex.id ? 'not-allowed' : 'pointer', 
+                        fontWeight: 'bold',
+                        minWidth: '50px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.1rem'
+                      }}
                       title="Guardar serie"
                     >
-                      ✓
+                      {savingExerciseId === ex.id ? '...' : '✓'}
                     </button>
                   </div>
 
