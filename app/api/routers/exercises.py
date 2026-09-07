@@ -18,6 +18,7 @@ def get_exercises(db: Session = Depends(get_db), current_user: User = Depends(ge
     ).all()
     return exercises
 
+@router.post("", response_model=ExerciseResponse)
 @router.post("/", response_model=ExerciseResponse)
 def create_exercise(exercise: ExerciseCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_exercise = Exercise(

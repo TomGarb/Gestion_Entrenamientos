@@ -14,6 +14,7 @@ from app.models.friendship import Friendship
 from app.models.notification import Notification
 from app.models.group import WorkoutGroup, GroupMember
 from app.models.scheduled_workout import ScheduledWorkout
+from app.models.nutrition import ConsumoDiario
 
 __all__ = [
     "User",
@@ -28,4 +29,5 @@ __all__ = [
     "WorkoutGroup",
     "GroupMember",
     "ScheduledWorkout",
+    "ConsumoDiario",
 ]

@@ -92,6 +92,11 @@ class User(Base):
         cascade="all, delete-orphan",
         foreign_keys="[ScheduledWorkout.user_id]",
     )
+    consumos_diarios = relationship(
+        "ConsumoDiario",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"

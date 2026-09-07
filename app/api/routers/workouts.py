@@ -124,8 +124,18 @@ def finish_workout(log_id: int, db: Session = Depends(get_db), current_user: Use
     delta = now - log.created_at
     duration_mins = int(delta.total_seconds() / 60)
     
+    # MET Formula para entrenamiento de fuerza/pesas: 3.5 * peso en kg * duracion en horas
+    user_weight = (
+        current_user.weight_kg
+        if (current_user.weight_kg and current_user.weight_kg > 0)
+        else 70.0
+    )
+    duration_hours = (duration_mins / 60.0) if duration_mins > 0 else (delta.total_seconds() / 3600.0 if delta.total_seconds() > 0 else 0.0)
+    calories_burned = round(3.5 * user_weight * duration_hours, 1)
+
     log.status = "completed"
     log.duration_minutes = duration_mins
+    log.calories_burned = calories_burned
     db.commit()
     db.refresh(log)
     

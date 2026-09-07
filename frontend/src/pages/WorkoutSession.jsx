@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { startWorkout, addSet, removeSet, finishWorkout } from '../services/workoutService';
 import { getExercises } from '../services/exerciseService';
 import { getRoutines } from '../services/routineService';
+import DailyNutritionCard from '../components/nutrition/DailyNutritionCard';
 
 // --- Paleta "Soft Fitness" ---
 const colors = {
@@ -165,6 +166,10 @@ const WorkoutSession = () => {
   if (!activeLog) {
     return (
       <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ width: '100%', maxWidth: '650px', marginBottom: '1.5rem' }}>
+          <DailyNutritionCard />
+        </div>
+
         <h1 style={{ marginBottom: '1rem', textAlign: 'center' }}>¿Qué vamos a entrenar hoy?</h1>
         <p style={{ color: colors.textSecondary, marginBottom: '2rem', maxWidth: '600px', textAlign: 'center', lineHeight: '1.5', fontSize: '1.1rem' }}>
           Elige <strong>Entrenamiento Libre</strong> si quieres improvisar y añadir ejercicios manualmente sobre la marcha. Si prefieres seguir un plan estructurado, selecciona una de tus <strong>Rutinas</strong> guardadas para cargar todos sus ejercicios automáticamente.
@@ -210,7 +215,7 @@ const WorkoutSession = () => {
     <div style={{ backgroundColor: colors.background, color: colors.textPrimary, minHeight: '100vh', padding: '2rem', margin: '-2rem' }}>
       
       {/* Header fijo estilo App */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.borderLine}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.borderLine}` }}>
         <div>
           <span style={{ background: colors.accentRed, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', marginRight: '1rem' }}>EN CURSO</span>
           <span style={{ color: colors.textSecondary }}>Log #{activeLog.id} {activeRoutine ? `• ${activeRoutine.name}` : '• Libre'}</span>
@@ -222,6 +227,9 @@ const WorkoutSession = () => {
           Terminar Entrenamiento
         </button>
       </div>
+
+      {/* Balance Nutricional Diario */}
+      <DailyNutritionCard />
 
       {errorMsg && (
         <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#fca5a5', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

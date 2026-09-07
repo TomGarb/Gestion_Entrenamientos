@@ -18,7 +18,8 @@ import {
   TrendingUpIcon, 
   BarChartIcon, 
   SparklesIcon,
-  DumbbellIcon 
+  DumbbellIcon,
+  DownloadIcon
 } from '../components/common/Icons';
 
 const DEFAULT_WIDGETS = {
@@ -202,6 +203,11 @@ const Dashboard = () => {
           <Link to="/community" className="quick-action-btn">
             <UsersIcon size={16} color="var(--accent)" />
             <span>Comunidad & Grupos</span>
+          </Link>
+
+          <Link to="/settings?tab=exportar" className="quick-action-btn">
+            <DownloadIcon size={16} color="var(--accent)" />
+            <span>Exportar Datos</span>
           </Link>
         </div>
       )}
