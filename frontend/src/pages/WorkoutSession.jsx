@@ -43,37 +43,6 @@ const WorkoutSession = () => {
   // Ejercicios activos en la sesión actual
   const [activeExercises, setActiveExercises] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
-  const [existingActiveSession, setExistingActiveSession] = useState(null);
-
-  const [savingExerciseId, setSavingExerciseId] = useState(null);
-
-  // --- Calculadora de Barra ---
-  const [activeCalculator, setActiveCalculator] = useState(null);
-  const [platesWeight, setPlatesWeight] = useState('');
-  
-  // Inicializar barWeight desde localStorage o por defecto 20
-  const [barWeight, setBarWeight] = useState(() => {
-    const savedBar = localStorage.getItem('gymtracker_barbell_weight');
-    return savedBar ? savedBar : '20';
-  });
-
-  // Guardar en localStorage cada vez que cambie barWeight
-  useEffect(() => {
-    localStorage.setItem('gymtracker_barbell_weight', barWeight);
-  }, [barWeight]);
-
-  const handleApplyCalculator = (exerciseId) => {
-    const plates = parseFloat(platesWeight) || 0;
-    const bar = parseFloat(barWeight) || 0;
-    const totalWeight = (plates * 2) + bar;
-    
-    // Rellenar el input principal
-    handleInputChange(exerciseId, 'weight', totalWeight.toString());
-    
-    // Cerrar popover y limpiar discos
-    setActiveCalculator(null);
-    setPlatesWeight('');
-  };
 
   useEffect(() => {
     fetchCatalogs();
@@ -81,16 +50,10 @@ const WorkoutSession = () => {
 
   const fetchCatalogs = async () => {
     try {
-      const [r, e, active] = await Promise.all([
-        getRoutines(),
-        getExercises(),
-        getActiveWorkout().catch(() => null)
-      ]);
-      setRoutines(r || []);
-      setExercises(e || []);
-      if (active && active.id) {
-        setExistingActiveSession(active);
-      }
+      const r = await getRoutines();
+      const e = await getExercises();
+      setRoutines(r);
+      setExercises(e);
     } catch (err) {
       console.error("Error al cargar datos", err);
     }
