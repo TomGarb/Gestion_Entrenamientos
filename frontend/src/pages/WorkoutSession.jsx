@@ -353,14 +353,64 @@ const WorkoutSession = () => {
                 <div>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <span style={{ width: '40px', fontWeight: 'bold', color: colors.accentRed }}>#{exSets.length + 1}</span>
-                    <input 
-                      type="number" step="0.5" 
-                      placeholder={isBw ? "+ lastre kg (0)" : "kg"} 
-                      value={currentInput.weight} 
-                      onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSaveSet(ex)}
-                      style={inputStyle} 
-                    />
+                                        <div style={{ position: 'relative', display: 'flex', flex: 1 }}>
+                        <input 
+                          type="number" step="0.5" 
+                          placeholder={isBw ? "+ lastre kg (0)" : "kg"} 
+                          value={currentInput.weight} 
+                          onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSaveSet(ex)}
+                          style={{ ...inputStyle, width: '100%', paddingRight: !isBw ? '40px' : '0.75rem' }} 
+                        />
+                        {!isBw && (
+                          <button 
+                            type="button"
+                            onClick={() => setActiveCalculator(activeCalculator === ex.id ? null : ex.id)}
+                            style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 5px' }}
+                            title="Calculadora de Barra (Peso Libre)"
+                          >
+                            🏋️
+                          </button>
+                        )}
+                        
+                        {/* Popover de Calculadora */}
+                        {activeCalculator === ex.id && (
+                          <div style={{ position: 'absolute', top: 'calc(100% + 10px)', left: 0, zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--border-line)', padding: '1rem', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', width: '250px' }}>
+                            <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.95rem', color: 'var(--text-primary)' }}>Calculadora de Barra</h4>
+                            
+                            <div style={{ marginBottom: '0.8rem' }}>
+                              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Peso de la barra (kg)</label>
+                              <input 
+                                type="number" step="0.5"
+                                value={barWeight}
+                                onChange={(e) => setBarWeight(e.target.value)}
+                                style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', color: 'white' }}
+                              />
+                            </div>
+                            
+                            <div style={{ marginBottom: '1rem' }}>
+                              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Discos por lado (kg)</label>
+                              <input 
+                                type="number" step="0.5"
+                                value={platesWeight}
+                                onChange={(e) => setPlatesWeight(e.target.value)}
+                                placeholder="Ej: 20"
+                                autoFocus
+                                onKeyDown={(e) => e.key === 'Enter' && handleApplyCalculator(ex.id)}
+                                style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', color: 'white' }}
+                              />
+                            </div>
+                            
+                            <button 
+                              type="button"
+                              onClick={() => handleApplyCalculator(ex.id)}
+                              style={{ width: '100%', padding: '0.6rem', background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                            >
+                              Aplicar ({(parseFloat(platesWeight || 0) * 2 + parseFloat(barWeight || 0))} kg)
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     <input 
                       type="number" placeholder="reps" 
                       value={currentInput.reps} 
