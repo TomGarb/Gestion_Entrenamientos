@@ -5,6 +5,9 @@ import { NotificationContext } from '../../context/NotificationContext';
 import FeedbackModal from './FeedbackModal';
 import NotificationDropdown from './NotificationDropdown';
 import InitialSetupModal from './InitialSetupModal';
+import SpeedDialFAB from './SpeedDialFAB';
+import QuickWeightModal from './QuickWeightModal';
+import FoodLogModal from '../nutrition/FoodLogModal';
 import {
   BellIcon,
   LightbulbIcon,
@@ -29,6 +32,8 @@ const MainLayout = () => {
   
   const [showFeedback, setShowFeedback] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showFoodModal, setShowFoodModal] = useState(false);
+  const [showWeightModal, setShowWeightModal] = useState(false);
   
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -370,6 +375,23 @@ const MainLayout = () => {
 
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
       <InitialSetupModal />
+
+      {/* Botón Flotante de Acciones Rápidas (Speed Dial FAB) */}
+      <SpeedDialFAB
+        onOpenFoodModal={() => setShowFoodModal(true)}
+        onOpenWeightModal={() => setShowWeightModal(true)}
+      />
+
+      {/* Modales Globales */}
+      <FoodLogModal
+        isOpen={showFoodModal}
+        onClose={() => setShowFoodModal(false)}
+      />
+
+      <QuickWeightModal
+        isOpen={showWeightModal}
+        onClose={() => setShowWeightModal(false)}
+      />
     </div>
   );
 };

@@ -1,62 +1,96 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Light theme - Minimal Fallback */
-  --bg-primary: #F4F4F5;
+  /* ========================================================
+     ☀️ CLEAN LIGHT MODE (Minimalist Health-Tech)
+     ======================================================== */
+  --bg-primary: #F8FAFC;
+  --bg-base-gradient: linear-gradient(180deg, #F8FAFC 0%, #EDF2F7 100%);
   --bg-card: #FFFFFF;
-  --bg-input: #F4F4F5;
-  --text-primary: #09090B;
-  --text-secondary: #71717A;
-  --border-line: #E4E4E7;
-  --shadow-card: none;
-  --mint-gradient: #10B981; /* Accent green */
-  --danger-gradient: #EF4444; /* Accent red */
-  --peach-light: #FEE2E2;
-  --peach-text: #EF4444;
-  --danger: #EF4444;
-  --accent: #10B981;
-  --accent-glow: rgba(16, 185, 129, 0.15);
+  --bg-card-subtle: #F1F5F9;
+  --bg-input: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-dim: #94A3B8;
+  --border-line: #E2E8F0;
+  
+  /* Acentos Sólidos Mate (Light Mode) */
+  --accent-crimson: #EF233C;
+  --accent-crimson-glow: none;
+  --accent-crimson-bg: rgba(239, 35, 60, 0.08);
+
+  --accent-electric: #0284C7;
+  --accent-electric-glow: none;
+  --accent-electric-bg: rgba(2, 132, 199, 0.08);
+
+  /* Acentos Genéricos */
+  --accent: #0284C7;
+  --accent-glow: rgba(2, 132, 199, 0.12);
+  --danger: #EF233C;
+  --danger-gradient: #EF233C;
+
+  /* Elevación y Sombras Suaves (Light Mode) */
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  --glow-crimson-card: 0 10px 30px -5px rgba(239, 35, 60, 0.12);
+  --glow-electric-card: 0 10px 30px -5px rgba(2, 132, 199, 0.12);
 
   /* Heatmap Colors (Light Mode) */
   --heatmap-empty: #EBEDF0;
-  --heatmap-level-1: #9BE9A8;
-  --heatmap-level-2: #40C463;
-  --heatmap-level-3: #216E39;
+  --heatmap-level-1: #BAE6FD;
+  --heatmap-level-2: #38BDF8;
+  --heatmap-level-3: #0284C7;
 
   /* Floating Dock (Light Mode) */
-  --dock-bg: rgba(255, 255, 255, 0.9);
-  --dock-border: rgba(228, 228, 231, 0.9);
-  --dock-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --dock-bg: rgba(255, 255, 255, 0.88);
+  --dock-border: rgba(226, 232, 240, 0.85);
+  --dock-shadow: 0 16px 36px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
-body.dark {
-  /* Dark theme - Crypto / Deep Analytics Aesthetic */
-  --bg-primary: #000000;
-  --bg-card: #121212;
-  --bg-input: #1C1C1E;
+body.dark, :root.dark {
+  /* ========================================================
+     🌙 NEÓN DARK MODE (Default - Immersive Health-Tech)
+     ======================================================== */
+  --bg-primary: #050B14;
+  --bg-base-gradient: radial-gradient(circle at 50% 0%, #0A1128 0%, #050B14 100%);
+  --bg-card: rgba(17, 24, 39, 0.75);
+  --bg-card-subtle: rgba(30, 41, 59, 0.6);
+  --bg-input: rgba(15, 23, 42, 0.7);
   --text-primary: #FFFFFF;
-  --text-secondary: #8E8E93;
-  --border-line: #2C2C2E;
-  --shadow-card: none;
-  --mint-gradient: #34C759;
-  --danger-gradient: #FF3B30;
-  --peach-light: rgba(255, 59, 48, 0.15);
-  --peach-text: #FF3B30;
-  --danger: #FF3B30;
-  --accent: #34C759;
-  --accent-glow: rgba(52, 199, 89, 0.2);
+  --text-secondary: #94A3B8;
+  --text-dim: #64748B;
+  --border-line: rgba(255, 255, 255, 0.08);
+
+  /* Acentos Neón Vibrantes */
+  --accent-crimson: #FF2A55;
+  --accent-crimson-glow: 0 0 20px rgba(255, 42, 85, 0.45);
+  --accent-crimson-bg: rgba(255, 42, 85, 0.12);
+
+  --accent-electric: #00D4FF;
+  --accent-electric-glow: 0 0 20px rgba(0, 212, 255, 0.45);
+  --accent-electric-bg: rgba(0, 212, 255, 0.12);
+
+  /* Acentos Genéricos */
+  --accent: #00D4FF;
+  --accent-glow: rgba(0, 212, 255, 0.2);
+  --danger: #FF2A55;
+  --danger-gradient: #FF2A55;
   color-scheme: dark;
 
+  /* Sombras y Emisión de Luz Neón (Glow) */
+  --shadow-card: 0 16px 36px -8px rgba(0, 0, 0, 0.7);
+  --glow-crimson-card: 0 4px 24px rgba(255, 42, 85, 0.18), 0 0 40px rgba(255, 42, 85, 0.08);
+  --glow-electric-card: 0 4px 24px rgba(0, 212, 255, 0.18), 0 0 40px rgba(0, 212, 255, 0.08);
+
   /* Heatmap Colors (Dark Mode) */
-  --heatmap-empty: #2D333B;
-  --heatmap-level-1: #9BE9A8;
-  --heatmap-level-2: #40C463;
-  --heatmap-level-3: #216E39;
+  --heatmap-empty: #1E293B;
+  --heatmap-level-1: #0369A1;
+  --heatmap-level-2: #0284C7;
+  --heatmap-level-3: #00D4FF;
 
   /* Floating Dock (Dark Mode) */
-  --dock-bg: rgba(20, 20, 22, 0.85);
+  --dock-bg: rgba(17, 24, 39, 0.8);
   --dock-border: rgba(255, 255, 255, 0.12);
-  --dock-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.15);
+  --dock-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 212, 255, 0.15);
 }
 
 body {
