@@ -50,17 +50,19 @@ def run_auto_migrations(target_engine=None):
     try:
         from sqlalchemy import inspect, text
 
-        inspector = inspect(eng)
-        existing_tables = inspector.get_table_names()
-
         with eng.begin() as conn:
-            # Ampliar users.foto_perfil a TEXT en PostgreSQL si fue creado como VARCHAR(500)
+            inspector = inspect(conn)
+            existing_tables = set(inspector.get_table_names())
+
+            # Ampliar users.foto_perfil a TEXT en PostgreSQL solo si no es TEXT
             if eng.dialect.name == "postgresql" and "users" in existing_tables:
-                try:
-                    conn.execute(text('ALTER TABLE "users" ALTER COLUMN "foto_perfil" TYPE TEXT;'))
-                    print("[Auto-Migrate] users.foto_perfil ampliado a TEXT exitosamente.")
-                except Exception as ex_col:
-                    print(f"[Auto-Migrate] Nota al migrar foto_perfil: {ex_col}")
+                user_cols = {col["name"]: str(col["type"]).lower() for col in inspector.get_columns("users")}
+                if "foto_perfil" in user_cols and "text" not in user_cols["foto_perfil"]:
+                    try:
+                        conn.execute(text('ALTER TABLE "users" ALTER COLUMN "foto_perfil" TYPE TEXT;'))
+                        print("[Auto-Migrate] users.foto_perfil ampliado a TEXT exitosamente.")
+                    except Exception as ex_col:
+                        print(f"[Auto-Migrate] Nota al migrar foto_perfil: {ex_col}")
 
             for table_name, table in Base.metadata.tables.items():
                 if table_name in existing_tables:

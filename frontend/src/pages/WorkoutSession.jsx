@@ -43,6 +43,29 @@ const WorkoutSession = () => {
   // Ejercicios activos en la sesión actual
   const [activeExercises, setActiveExercises] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
+  const [existingActiveSession, setExistingActiveSession] = useState(null);
+  const [savingExerciseId, setSavingExerciseId] = useState(null);
+
+  // --- Calculadora de Barra ---
+  const [activeCalculator, setActiveCalculator] = useState(null);
+  const [platesWeight, setPlatesWeight] = useState('');
+  const [barWeight, setBarWeight] = useState(() => {
+    return localStorage.getItem('gymtracker_barbell_weight') || '20';
+  });
+
+  const handleBarWeightChange = (newVal) => {
+    setBarWeight(newVal);
+    localStorage.setItem('gymtracker_barbell_weight', newVal);
+  };
+
+  const handleApplyCalculator = (exerciseId) => {
+    const plates = parseFloat(platesWeight) || 0;
+    const bar = parseFloat(barWeight) || 0;
+    const totalWeight = (plates * 2) + bar;
+    handleInputChange(exerciseId, 'weight', totalWeight.toString());
+    setActiveCalculator(null);
+    setPlatesWeight('');
+  };
 
   useEffect(() => {
     fetchCatalogs();
@@ -50,10 +73,16 @@ const WorkoutSession = () => {
 
   const fetchCatalogs = async () => {
     try {
-      const r = await getRoutines();
-      const e = await getExercises();
-      setRoutines(r);
-      setExercises(e);
+      const [r, e, active] = await Promise.all([
+        getRoutines(),
+        getExercises(),
+        getActiveWorkout().catch(() => null)
+      ]);
+      setRoutines(r || []);
+      setExercises(e || []);
+      if (active && active.id) {
+        setExistingActiveSession(active);
+      }
     } catch (err) {
       console.error("Error al cargar datos", err);
     }
@@ -514,7 +543,7 @@ const WorkoutSession = () => {
                               <input 
                                 type="number" step="0.5"
                                 value={barWeight}
-                                onChange={(e) => setBarWeight(e.target.value)}
+                                onChange={(e) => handleBarWeightChange(e.target.value)}
                                 style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', color: 'white' }}
                               />
                             </div>
