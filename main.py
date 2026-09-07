@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base, run_auto_migrations
-from app.models import user, exercise, routine, workout, feedback, friendship, notification, group, scheduled_workout
+from app.models import user, exercise, routine, workout, feedback, friendship, notification, group, scheduled_workout, nutrition
 
 Base.metadata.create_all(bind=engine)
 run_auto_migrations(engine)
@@ -48,7 +48,7 @@ app.add_middleware(
 def read_root():
     return {"message": "Bienvenido a la API de GymTracker. El servidor FastAPI está funcionando."}
 
-from app.api.routers import auth, exercises, routines, workouts, dashboard, telegram, admin, feedback, analytics, community, notifications, groups, scheduled_workouts, calendar
+from app.api.routers import auth, exercises, routines, workouts, dashboard, telegram, admin, feedback, analytics, community, notifications, groups, scheduled_workouts, calendar, nutrition, export
 from app.core.websocket_manager import set_main_loop
 import asyncio
 
@@ -76,6 +76,8 @@ app.include_router(notifications.ws_router)
 app.include_router(groups.router)
 app.include_router(scheduled_workouts.router)
 app.include_router(calendar.router)
+app.include_router(nutrition.router)
+app.include_router(export.router)
 
 
 if __name__ == "__main__":

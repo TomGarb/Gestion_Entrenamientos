@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getRoutines, createRoutine, deleteRoutine, sendRoutineToTelegram } from '../services/routineService';
 import { getExercises } from '../services/exerciseService';
 import api from '../services/api';
+import QuickExerciseModal from '../components/exercises/QuickExerciseModal';
 
 // --- Paleta "Hierro y Sudor" ---
 const colors = {
@@ -36,6 +37,35 @@ const Routines = () => {
   
   // Estado para los ejercicios asignados dinámicamente
   const [routineExercises, setRoutineExercises] = useState([]);
+
+  // Estado para modal de creación rápida de ejercicio "al vuelo"
+  const [showQuickExerciseModal, setShowQuickExerciseModal] = useState(false);
+  const [pendingRowIndex, setPendingRowIndex] = useState(null);
+  const [quickSuccessToast, setQuickSuccessToast] = useState('');
+
+  const handleQuickExerciseCreated = (newEx) => {
+    // 1. Inyectar en catálogo global
+    setExercisesCatalog((prev) => {
+      if (prev.some((e) => e.id === newEx.id)) return prev;
+      return [...prev, newEx];
+    });
+
+    // 2. Asignar a la fila en edición o auto-añadir a la rutina
+    if (pendingRowIndex !== null && pendingRowIndex >= 0 && pendingRowIndex < routineExercises.length) {
+      const updated = [...routineExercises];
+      updated[pendingRowIndex].exercise_id = newEx.id;
+      setRoutineExercises(updated);
+    } else {
+      setRoutineExercises((prev) => [
+        ...prev,
+        { exercise_id: newEx.id, sets: 3, reps: 10, rest_seconds: 60 }
+      ]);
+    }
+
+    setPendingRowIndex(null);
+    setQuickSuccessToast(`✓ Ejercicio "${newEx.name}" creado y añadido a tu rutina.`);
+    setTimeout(() => setQuickSuccessToast(''), 4000);
+  };
 
   useEffect(() => {
     fetchInitialData();
@@ -96,6 +126,11 @@ const Routines = () => {
   };
 
   const handleRoutineExerciseChange = (index, field, value) => {
+    if (field === 'exercise_id' && value === '__NEW__') {
+      setPendingRowIndex(index);
+      setShowQuickExerciseModal(true);
+      return;
+    }
     const updated = [...routineExercises];
     updated[index][field] = value;
     setRoutineExercises(updated);
@@ -309,12 +344,42 @@ const Routines = () => {
 
               {/* Constructor de Ejercicios */}
               <div style={{ borderTop: '1px solid var(--border-line)', paddingTop: '2rem', marginTop: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '600' }}>Ejercicios</h3>
-                  <button type="button" onClick={addExerciseRow} style={{ padding: '0.6rem 1.2rem', background: 'rgba(52, 199, 89, 0.15)', color: 'var(--accent)', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' }}>
-                    + Agregar
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingRowIndex(null);
+                        setShowQuickExerciseModal(true);
+                      }}
+                      style={{
+                        padding: '0.6rem 1.2rem',
+                        background: 'rgba(52, 199, 89, 0.15)',
+                        color: 'var(--accent)',
+                        border: '1px solid var(--accent)',
+                        borderRadius: '9999px',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        fontSize: '0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                      }}
+                    >
+                      <span>⚡</span> + Crear nuevo ejercicio
+                    </button>
+                    <button type="button" onClick={addExerciseRow} style={{ padding: '0.6rem 1.2rem', background: 'var(--accent)', color: '#000000', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem' }}>
+                      + Agregar
+                    </button>
+                  </div>
                 </div>
+
+                {quickSuccessToast && (
+                  <div style={{ background: 'rgba(52, 199, 89, 0.15)', border: '1px solid var(--accent)', color: 'var(--accent)', padding: '0.6rem 1rem', borderRadius: '10px', marginBottom: '1rem', fontSize: '0.85rem', fontWeight: '600' }}>
+                    {quickSuccessToast}
+                  </div>
+                )}
 
                 {routineExercises.length === 0 ? (
                   <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center', padding: '2rem', background: 'var(--bg-input)', borderRadius: '16px' }}>Añade ejercicios para comenzar.</p>
@@ -326,6 +391,7 @@ const Routines = () => {
                         <div style={{ flex: '1 1 100%' }}>
                           <select required value={row.exercise_id} onChange={(e) => handleRoutineExerciseChange(index, 'exercise_id', e.target.value)} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-line)' }}>
                             <option value="">Seleccionar Ejercicio...</option>
+                            <option value="__NEW__">⚡ + Crear nuevo ejercicio...</option>
                             {exercisesCatalog.map(ex => (
                               <option key={ex.id} value={ex.id}>{ex.name} ({ex.muscle_group})</option>
                             ))}
@@ -355,6 +421,16 @@ const Routines = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Creación Rápida de Ejercicio al Vuelo */}
+      <QuickExerciseModal
+        isOpen={showQuickExerciseModal}
+        onClose={() => {
+          setShowQuickExerciseModal(false);
+          setPendingRowIndex(null);
+        }}
+        onExerciseCreated={handleQuickExerciseCreated}
+      />
     </div>
   );
 };

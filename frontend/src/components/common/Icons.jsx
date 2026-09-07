@@ -191,3 +191,22 @@ export const SparklesIcon = ({ size = 20, color = 'currentColor', strokeWidth = 
   </svg>
 );
 
+export const DownloadIcon = ({ size = 20, color = 'currentColor', strokeWidth = 2, className = '', style = {} }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
+
+export const FileSpreadsheetIcon = ({ size = 20, color = 'currentColor', strokeWidth = 2, className = '', style = {} }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+    <path d="M8 13h2" />
+    <path d="M14 13h2" />
+    <path d="M8 17h2" />
+    <path d="M14 17h2" />
+  </svg>
+);
+

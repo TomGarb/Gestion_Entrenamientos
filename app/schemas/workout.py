@@ -39,6 +39,7 @@ class WorkoutLogResponse(BaseModel):
     date: date
     status: str
     duration_minutes: Optional[int]
+    calories_burned: Optional[float] = 0.0
     notes: str
     created_at: datetime
     sets: List[WorkoutSetResponse] = []

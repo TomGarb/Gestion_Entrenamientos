@@ -34,7 +34,7 @@ class User(Base):
     height_cm = Column(Float, nullable=True)
     weight_kg = Column(Float, nullable=True)
     target_weight_kg = Column(Float, nullable=True)
-    foto_perfil = Column(String(500), nullable=True)
+    foto_perfil = Column(Text, nullable=True)
 
     @property
     def peso(self) -> float | None:
@@ -91,6 +91,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
         foreign_keys="[ScheduledWorkout.user_id]",
+    )
+    consumos_diarios = relationship(
+        "ConsumoDiario",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

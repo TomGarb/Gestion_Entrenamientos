@@ -54,6 +54,14 @@ def run_auto_migrations(target_engine=None):
         existing_tables = inspector.get_table_names()
 
         with eng.begin() as conn:
+            # Ampliar users.foto_perfil a TEXT en PostgreSQL si fue creado como VARCHAR(500)
+            if eng.dialect.name == "postgresql" and "users" in existing_tables:
+                try:
+                    conn.execute(text('ALTER TABLE "users" ALTER COLUMN "foto_perfil" TYPE TEXT;'))
+                    print("[Auto-Migrate] users.foto_perfil ampliado a TEXT exitosamente.")
+                except Exception as ex_col:
+                    print(f"[Auto-Migrate] Nota al migrar foto_perfil: {ex_col}")
+
             for table_name, table in Base.metadata.tables.items():
                 if table_name in existing_tables:
                     existing_columns = {col["name"] for col in inspector.get_columns(table_name)}

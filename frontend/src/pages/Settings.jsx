@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { generateLinkCode, testConnection } from '../services/telegramService';
 import { AuthContext } from '../context/AuthContext';
 import { 
@@ -11,8 +12,11 @@ import {
   TrendingUpIcon, 
   UsersIcon, 
   CalendarIcon, 
-  CheckIcon 
+  CheckIcon,
+  DownloadIcon,
+  FileSpreadsheetIcon
 } from '../components/common/Icons';
+import { getExportStats, downloadExport } from '../services/exportService';
 
 // --- Paleta "Soft Fitness" ---
 const colors = {
@@ -92,8 +96,32 @@ const WIDGET_DEFINITIONS = [
 
 const Settings = () => {
   const { user, updateProfile, updatePassword } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState('perfil');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialTab = searchParams.get('tab') || 'perfil';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const fileInputRef = useRef(null);
+
+  // Sincronizar tab desde query string si cambia externamente
+  useEffect(() => {
+    const tabParam = new URLSearchParams(location.search).get('tab');
+    if (tabParam && ['perfil', 'dashboard', 'exportar', 'seguridad'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
+
+  // Export state
+  const [exportStats, setExportStats] = useState(null);
+  const [exportType, setExportType] = useState('workouts'); // 'workouts' | 'nutrition' | 'summary' | 'backup'
+  const [exportFormat, setExportFormat] = useState('csv'); // 'csv' | 'json'
+  const [exportPeriod, setExportPeriod] = useState('all'); // 'all' | '30d' | '90d' | 'year'
+  const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'exportar' && !exportStats) {
+      getExportStats().then(setExportStats).catch(console.error);
+    }
+  }, [activeTab, exportStats]);
 
   // Telegram state
   const [code, setCode] = useState(null);
@@ -224,6 +252,19 @@ const Settings = () => {
     }
   };
 
+  const handleDownloadExport = async () => {
+    setIsExporting(true);
+    try {
+      const filename = await downloadExport(exportType, exportFormat, exportPeriod);
+      showToast(`✓ Archivo "${filename}" descargado exitosamente`, true);
+    } catch (err) {
+      console.error("Error exportando datos:", err);
+      showToast(err.response?.data?.detail || "Error al generar el archivo de exportación");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setSavingProfile(true);
@@ -335,6 +376,7 @@ const Settings = () => {
         {[
           { id: 'perfil', label: 'Cuenta & Físico', icon: UserIcon },
           { id: 'dashboard', label: 'Preferencias del Dashboard', icon: LayoutGridIcon },
+          { id: 'exportar', label: 'Exportar Datos & Métricas', icon: DownloadIcon },
           { id: 'seguridad', label: 'Seguridad & Telegram', icon: ShieldIcon }
         ].map(tab => {
           const Icon = tab.icon;
@@ -671,6 +713,302 @@ const Settings = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* PESTAÑA: Exportar Datos y Métricas */}
+        {/* =================================================================== */}
+        {activeTab === 'exportar' && (
+          <div>
+            {/* Header del Módulo */}
+            <div style={{
+              background: 'var(--bg-input)',
+              padding: '1.5rem',
+              borderRadius: '16px',
+              border: `1px solid ${colors.borderLine}`,
+              marginBottom: '2rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: 'var(--accent-glow)',
+                    color: 'var(--accent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <DownloadIcon size={22} color="currentColor" />
+                  </div>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: colors.textPrimary }}>
+                    Centro de Exportación de Datos
+                  </h2>
+                </div>
+                <p style={{ margin: '0.5rem 0 0 0', color: colors.textSecondary, fontSize: '0.9rem', maxWidth: '650px', lineHeight: '1.4' }}>
+                  Genera y descarga en cualquier momento tus registros de fuerza, tonelaje, series y consumo nutricional en archivos <strong>CSV (compatible con Excel / Google Sheets)</strong> o en formato <strong>JSON estructurado</strong>.
+                </p>
+              </div>
+
+              {/* Badges de conteo */}
+              {exportStats && (
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <div style={{ background: 'var(--bg-card)', border: `1px solid ${colors.borderLine}`, padding: '0.5rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: colors.accentGreen }}>{exportStats.total_workouts}</div>
+                    <div style={{ fontSize: '0.72rem', color: colors.textSecondary }}>Entrenos</div>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', border: `1px solid ${colors.borderLine}`, padding: '0.5rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ff9500' }}>{exportStats.total_sets}</div>
+                    <div style={{ fontSize: '0.72rem', color: colors.textSecondary }}>Series</div>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', border: `1px solid ${colors.borderLine}`, padding: '0.5rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#30d158' }}>{exportStats.total_nutrition_logs}</div>
+                    <div style={{ fontSize: '0.72rem', color: colors.textSecondary }}>Comidas</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Paso 1: Tipo de Reporte */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ ...labelStyle, fontSize: '1rem', color: colors.textPrimary, marginBottom: '0.75rem' }}>
+                1. Selecciona la información a exportar
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                {[
+                  {
+                    id: 'workouts',
+                    emoji: '🏋️',
+                    title: 'Entrenamientos y Series',
+                    badge: `${exportStats?.total_workouts || 0} sesiones`,
+                    desc: 'Detalle serie por serie: fecha, rutina, ejercicio, peso (kg), reps, tonelaje acumulado, RPE y calorías quemadas MET.'
+                  },
+                  {
+                    id: 'nutrition',
+                    emoji: '🥗',
+                    title: 'Registro Nutricional',
+                    badge: `${exportStats?.total_nutrition_logs || 0} comidas`,
+                    desc: 'Historial de alimentos: fecha, nombre del producto, gramos, calorías de porción y macronutrientes (P/C/G).'
+                  },
+                  {
+                    id: 'summary',
+                    emoji: '📊',
+                    title: 'Consolidado Diario',
+                    badge: 'Métricas diarias',
+                    desc: 'Resumen consolidado día a día: calorías consumidas, quemadas, netas, macros totales, entrenamientos y tonelaje total.'
+                  },
+                  {
+                    id: 'backup',
+                    emoji: '📦',
+                    title: 'Backup Completo (JSON)',
+                    badge: 'Copia total',
+                    desc: 'Respaldo maestro integral: perfil biográfico, peso/altura, rutinas, ejercicios personalizados, entrenamientos y nutrición.'
+                  }
+                ].map(item => {
+                  const isSelected = exportType === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        setExportType(item.id);
+                        if (item.id === 'backup') {
+                          setExportFormat('json');
+                        }
+                      }}
+                      style={{
+                        background: isSelected ? 'rgba(52, 199, 89, 0.08)' : 'var(--bg-input)',
+                        border: isSelected ? `2px solid ${colors.accentGreen}` : `1px solid ${colors.borderLine}`,
+                        borderRadius: '14px',
+                        padding: '1.25rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                          <span style={{ fontSize: '1.6rem' }}>{item.emoji}</span>
+                          <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '6px', background: isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.06)', color: isSelected ? '#000' : colors.textSecondary, fontWeight: '700' }}>
+                            {item.badge}
+                          </span>
+                        </div>
+                        <h3 style={{ margin: '0 0 0.35rem 0', fontSize: '1.05rem', fontWeight: '700', color: colors.textPrimary }}>
+                          {item.title}
+                        </h3>
+                        <p style={{ margin: 0, fontSize: '0.82rem', color: colors.textSecondary, lineHeight: '1.4' }}>
+                          {item.desc}
+                        </p>
+                      </div>
+                      <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '6px', color: isSelected ? colors.accentGreen : 'transparent', fontSize: '0.85rem', fontWeight: '700' }}>
+                        {isSelected && <span>✓ Seleccionado</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Paso 2 y 3: Formato y Período */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              
+              {/* Selector de Formato */}
+              <div style={{ background: 'var(--bg-input)', padding: '1.25rem', borderRadius: '14px', border: `1px solid ${colors.borderLine}` }}>
+                <label style={{ ...labelStyle, color: colors.textPrimary, marginBottom: '0.75rem' }}>
+                  2. Formato de Archivo
+                </label>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button
+                    type="button"
+                    disabled={exportType === 'backup'}
+                    onClick={() => setExportFormat('csv')}
+                    style={{
+                      flex: 1,
+                      padding: '0.85rem',
+                      borderRadius: '10px',
+                      border: exportFormat === 'csv' ? `2px solid ${colors.accentGreen}` : `1px solid ${colors.borderLine}`,
+                      background: exportFormat === 'csv' ? 'rgba(52, 199, 89, 0.12)' : 'var(--bg-card)',
+                      color: exportFormat === 'csv' ? colors.accentGreen : colors.textPrimary,
+                      fontWeight: '700',
+                      cursor: exportType === 'backup' ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      opacity: exportType === 'backup' ? 0.4 : 1
+                    }}
+                  >
+                    <span style={{ fontSize: '1.1rem' }}>📄 CSV</span>
+                    <span style={{ fontSize: '0.72rem', color: colors.textSecondary, fontWeight: '500' }}>Excel & Google Sheets</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setExportFormat('json')}
+                    style={{
+                      flex: 1,
+                      padding: '0.85rem',
+                      borderRadius: '10px',
+                      border: exportFormat === 'json' ? `2px solid ${colors.accentGreen}` : `1px solid ${colors.borderLine}`,
+                      background: exportFormat === 'json' ? 'rgba(52, 199, 89, 0.12)' : 'var(--bg-card)',
+                      color: exportFormat === 'json' ? colors.accentGreen : colors.textPrimary,
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <span style={{ fontSize: '1.1rem' }}>🗂️ JSON</span>
+                    <span style={{ fontSize: '0.72rem', color: colors.textSecondary, fontWeight: '500' }}>Estructurado / Backup</span>
+                  </button>
+                </div>
+                {exportType === 'backup' && (
+                  <p style={{ margin: '0.6rem 0 0 0', fontSize: '0.75rem', color: colors.textSecondary }}>
+                    * El respaldo maestro se genera en formato JSON para preservar la estructura completa de datos.
+                  </p>
+                )}
+              </div>
+
+              {/* Selector de Período */}
+              <div style={{ background: 'var(--bg-input)', padding: '1.25rem', borderRadius: '14px', border: `1px solid ${colors.borderLine}` }}>
+                <label style={{ ...labelStyle, color: colors.textPrimary, marginBottom: '0.75rem' }}>
+                  3. Rango de Fechas
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                  {[
+                    { id: 'all', label: 'Todo el historial' },
+                    { id: '30d', label: 'Últimos 30 días' },
+                    { id: '90d', label: 'Últimos 90 días' },
+                    { id: 'year', label: `Este año (${new Date().getFullYear()})` }
+                  ].map(p => {
+                    const isSelected = exportPeriod === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        disabled={exportType === 'backup'}
+                        onClick={() => setExportPeriod(p.id)}
+                        style={{
+                          padding: '0.65rem 0.5rem',
+                          borderRadius: '8px',
+                          border: isSelected ? `1px solid ${colors.accentGreen}` : `1px solid ${colors.borderLine}`,
+                          background: isSelected ? 'rgba(52, 199, 89, 0.15)' : 'var(--bg-card)',
+                          color: isSelected ? colors.accentGreen : colors.textPrimary,
+                          fontSize: '0.82rem',
+                          fontWeight: isSelected ? '700' : '500',
+                          cursor: exportType === 'backup' ? 'not-allowed' : 'pointer',
+                          opacity: exportType === 'backup' ? 0.4 : 1
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {exportType === 'backup' && (
+                  <p style={{ margin: '0.6rem 0 0 0', fontSize: '0.75rem', color: colors.textSecondary }}>
+                    * El respaldo maestro incluye automáticamente la totalidad de tus datos.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Botón de Descarga Principal */}
+            <div style={{
+              background: 'var(--bg-card)',
+              padding: '1.5rem',
+              borderRadius: '16px',
+              border: `1px solid ${colors.borderLine}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              marginBottom: '2rem'
+            }}>
+              <div>
+                <span style={{ fontWeight: '700', fontSize: '0.95rem', color: colors.textPrimary, display: 'block' }}>
+                  ¿Listo para exportar?
+                </span>
+                <span style={{ fontSize: '0.82rem', color: colors.textSecondary, display: 'block', marginTop: '2px' }}>
+                  El archivo se generará y descargará inmediatamente en tu navegador en formato {exportFormat.toUpperCase()}.
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleDownloadExport}
+                disabled={isExporting}
+                style={{
+                  padding: '0.9rem 2rem',
+                  background: 'var(--accent)',
+                  color: '#000000',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '800',
+                  fontSize: '1rem',
+                  cursor: isExporting ? 'default' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(52, 199, 89, 0.35)',
+                  transition: 'transform 0.15s ease'
+                }}
+              >
+                <DownloadIcon size={20} color="#000000" />
+                <span>{isExporting ? 'Generando archivo...' : `Descargar Reporte (${exportFormat.toUpperCase()})`}</span>
+              </button>
             </div>
           </div>
         )}

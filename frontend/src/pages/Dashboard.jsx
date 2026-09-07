@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { getDashboardStats } from '../services/dashboardService';
+import { getActiveWorkout, finishWorkout } from '../services/workoutService';
 import { getGroups, getGroupFeed } from '../services/groupService';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
@@ -18,7 +19,8 @@ import {
   TrendingUpIcon, 
   BarChartIcon, 
   SparklesIcon,
-  DumbbellIcon 
+  DumbbellIcon,
+  DownloadIcon
 } from '../components/common/Icons';
 
 const DEFAULT_WIDGETS = {
@@ -38,6 +40,7 @@ const Dashboard = () => {
   const [heatmapData, setHeatmapData] = useState([]);
   const [volumeData, setVolumeData] = useState([]);
   const [progressionData, setProgressionData] = useState([]);
+  const [activeSession, setActiveSession] = useState(null);
   
   const [exercises, setExercises] = useState([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState('');
@@ -59,15 +62,19 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [statsData, groupsData, heatRes, volRes, exRes] = await Promise.all([
+        const [statsData, groupsData, heatRes, volRes, exRes, active] = await Promise.all([
           getDashboardStats(),
           getGroups().catch(() => []),
           api.get('/api/analytics/activity-heatmap'),
           api.get('/api/analytics/volume-by-muscle'),
-          api.get('/api/exercises')
+          api.get('/api/exercises'),
+          getActiveWorkout().catch(() => null)
         ]);
 
         setStats(statsData);
+        if (active && active.id) {
+          setActiveSession(active);
+        }
         setGroups(groupsData || []);
         if (groupsData && groupsData.length > 0) {
           setSelectedGroupId(groupsData[0].id);
@@ -128,6 +135,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleFinishDashboardActive = async (sessionId) => {
+    try {
+      await finishWorkout(sessionId);
+      setActiveSession(null);
+      // Recargar stats y heatmap
+      const [statsData, heatRes] = await Promise.all([
+        getDashboardStats(),
+        api.get('/api/analytics/activity-heatmap')
+      ]);
+      setStats(statsData);
+      setHeatmapData(heatRes.data);
+    } catch (err) {
+      console.error("Error finalizando entrenamiento desde dashboard", err);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -181,6 +204,67 @@ const Dashboard = () => {
         </Link>
       </header>
 
+      {/* ⚠️ Aviso de Sesión en Curso sin Finalizar */}
+      {activeSession && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(255, 159, 10, 0.14) 0%, rgba(20, 20, 20, 0.5) 100%)',
+          border: '1.5px solid #ff9f0a',
+          borderRadius: '14px',
+          padding: '1.1rem 1.4rem',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          boxShadow: '0 4px 20px rgba(255, 159, 10, 0.12)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '1.6rem' }}>⏳</span>
+            <div>
+              <strong style={{ color: 'var(--text-primary)', fontSize: '0.98rem', display: 'block', marginBottom: '2px' }}>
+                Tienes una sesión en curso sin finalizar ({activeSession.date})
+              </strong>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.84rem' }}>
+                {activeSession.routine?.name || 'Entrenamiento Libre'} • {activeSession.sets?.length || 0} series registradas. Finalízala para que compute en tus métricas del mes y mapa de calor.
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => handleFinishDashboardActive(activeSession.id)}
+              style={{
+                padding: '0.6rem 1.1rem',
+                background: 'var(--accent, #34c759)',
+                color: '#000000',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                fontSize: '0.85rem'
+              }}
+            >
+              ✓ Finalizar y computar
+            </button>
+            <Link
+              to="/workouts"
+              style={{
+                padding: '0.6rem 1.1rem',
+                background: 'rgba(255, 255, 255, 0.08)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-line)',
+                borderRadius: '8px',
+                fontWeight: '600',
+                textDecoration: 'none',
+                fontSize: '0.85rem'
+              }}
+            >
+              Reanudar ➔
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* ⚡ Barra de Acciones Rápidas (Quick Actions) */}
       {widgets.quick_actions && (
         <div className="quick-actions-bar">
@@ -202,6 +286,11 @@ const Dashboard = () => {
           <Link to="/community" className="quick-action-btn">
             <UsersIcon size={16} color="var(--accent)" />
             <span>Comunidad & Grupos</span>
+          </Link>
+
+          <Link to="/settings?tab=exportar" className="quick-action-btn">
+            <DownloadIcon size={16} color="var(--accent)" />
+            <span>Exportar Datos</span>
           </Link>
         </div>
       )}

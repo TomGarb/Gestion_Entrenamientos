@@ -43,7 +43,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         email=clean_email,
         height_cm=height,
         weight_kg=weight,
-        foto_perfil=foto,
+        foto_perfil=foto if (foto and len(foto) <= 500) else None,
         avatar_url=foto
     )
     new_user.set_password(user.password)
@@ -130,10 +130,15 @@ def update_me(user_update: UserUpdate, db: Session = Depends(get_db), current_us
     if user_update.share_calendar_with_friends is not None:
         current_user.share_calendar_with_friends = user_update.share_calendar_with_friends
         
-    foto = user_update.foto_perfil if user_update.foto_perfil is not None else user_update.avatar_url
-    if foto is not None:
-        current_user.foto_perfil = foto
+    fields_set = user_update.model_fields_set
+    if 'avatar_url' in fields_set or 'foto_perfil' in fields_set:
+        # Si se envió explícitamente en el payload (incluyendo null para remover la foto)
+        foto = user_update.avatar_url if 'avatar_url' in fields_set else user_update.foto_perfil
         current_user.avatar_url = foto
+        if foto and len(foto) <= 500:
+            current_user.foto_perfil = foto
+        else:
+            current_user.foto_perfil = None
 
     if user_update.extra_data is not None:
         current_extra = dict(current_user.extra_data) if current_user.extra_data else {}

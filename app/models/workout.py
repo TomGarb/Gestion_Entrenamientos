@@ -27,6 +27,7 @@ class WorkoutLog(Base):
     )
     status = Column(String(20), default="in_progress", nullable=False)
     duration_minutes = Column(Integer, nullable=True)
+    calories_burned = Column(Float, nullable=True, default=0.0)
     notes = Column(Text, default="", nullable=False)
     created_at = Column(
         DateTime(timezone=True),
