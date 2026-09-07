@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
 
 from app.database import get_db
@@ -12,6 +12,36 @@ from app.api.deps import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/api/workouts", tags=["workouts"])
+
+@router.get("/active", response_model=Optional[WorkoutLogResponse])
+def get_active_workout(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    Retorna la sesión en progreso más reciente del usuario para permitir su reanudación
+    o finalización y evitar la pérdida de métricas en caso de cierre accidental de pantalla.
+    """
+    active_log = (
+        db.query(WorkoutLog)
+        .options(
+            joinedload(WorkoutLog.sets).joinedload(WorkoutSet.exercise),
+            joinedload(WorkoutLog.routine).joinedload(Routine.routine_exercises).joinedload(RoutineExercise.exercise)
+        )
+        .filter(WorkoutLog.user_id == current_user.id, WorkoutLog.status == "in_progress")
+        .order_by(WorkoutLog.created_at.desc())
+        .first()
+    )
+    return active_log
+
+@router.delete("/{log_id}/abandon")
+def abandon_workout(log_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Descarta o cancela un entrenamiento que quedó en progreso y no se desea conservar."""
+    log = db.query(WorkoutLog).filter(WorkoutLog.id == log_id, WorkoutLog.user_id == current_user.id).first()
+    if not log:
+        raise HTTPException(status_code=404, detail="Entrenamiento no encontrado")
+    if log.status != "in_progress":
+        raise HTTPException(status_code=400, detail="Solo se pueden descartar entrenamientos en progreso")
+    db.delete(log)
+    db.commit()
+    return {"detail": "Entrenamiento descartado correctamente"}
 
 @router.get("/history", response_model=List[WorkoutLogResponse])
 def get_workout_history(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -123,6 +153,12 @@ def finish_workout(log_id: int, db: Session = Depends(get_db), current_user: Use
         
     delta = now - log.created_at
     duration_mins = int(delta.total_seconds() / 60)
+    
+    # Si la sesión fue iniciada hace horas o días y se cierra después, acotamos la duración a un tiempo lógico
+    # basado en la cantidad de series registradas (~3-4 minutos por serie, mín 30m, máx 180m)
+    sets_count = len(log.sets) if log.sets else 0
+    if duration_mins > 240:
+        duration_mins = max(30, min(180, sets_count * 4 if sets_count > 0 else 45))
     
     # MET Formula para entrenamiento de fuerza/pesas: 3.5 * peso en kg * duracion en horas
     user_weight = (

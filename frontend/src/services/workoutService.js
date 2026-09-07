@@ -24,3 +24,13 @@ export const getWorkoutHistory = async () => {
   const response = await api.get('/api/workouts/history');
   return response.data;
 };
+
+export const getActiveWorkout = async () => {
+  const response = await api.get('/api/workouts/active');
+  return response.data;
+};
+
+export const abandonWorkout = async (logId) => {
+  const response = await api.delete(`/api/workouts/${logId}/abandon`);
+  return response.data;
+};

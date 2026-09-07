@@ -34,7 +34,7 @@ class User(Base):
     height_cm = Column(Float, nullable=True)
     weight_kg = Column(Float, nullable=True)
     target_weight_kg = Column(Float, nullable=True)
-    foto_perfil = Column(String(500), nullable=True)
+    foto_perfil = Column(Text, nullable=True)
 
     @property
     def peso(self) -> float | None:

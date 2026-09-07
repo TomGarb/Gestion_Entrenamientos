@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { startWorkout, addSet, removeSet, finishWorkout } from '../services/workoutService';
+import { startWorkout, addSet, removeSet, finishWorkout, getActiveWorkout, abandonWorkout } from '../services/workoutService';
 import { getExercises } from '../services/exerciseService';
 import { getRoutines } from '../services/routineService';
 import DailyNutritionCard from '../components/nutrition/DailyNutritionCard';
@@ -43,6 +43,7 @@ const WorkoutSession = () => {
   // Ejercicios activos en la sesión actual
   const [activeExercises, setActiveExercises] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
+  const [existingActiveSession, setExistingActiveSession] = useState(null);
 
   useEffect(() => {
     fetchCatalogs();
@@ -50,12 +51,64 @@ const WorkoutSession = () => {
 
   const fetchCatalogs = async () => {
     try {
-      const r = await getRoutines();
-      const e = await getExercises();
+      const [r, e, active] = await Promise.all([
+        getRoutines(),
+        getExercises(),
+        getActiveWorkout().catch(() => null)
+      ]);
       setRoutines(r);
       setExercises(e);
+      if (active && active.id) {
+        setExistingActiveSession(active);
+      }
     } catch (err) {
       console.error("Error al cargar datos", err);
+    }
+  };
+
+  const handleResumeSession = (session) => {
+    setActiveLog(session);
+    setSavedSets(session.sets || []);
+    
+    // Cargar ejercicios de la rutina o de los sets existentes
+    if (session.routine) {
+      setActiveRoutine(session.routine);
+      const mappedEx = session.routine.routine_exercises?.map(rx => rx.exercise).filter(Boolean) || [];
+      const setExs = (session.sets || []).map(s => s.exercise).filter(Boolean);
+      const combined = [...mappedEx];
+      setExs.forEach(ex => {
+        if (!combined.find(c => c.id === ex.id)) combined.push(ex);
+      });
+      setActiveExercises(combined);
+    } else {
+      setActiveRoutine(null);
+      const setExs = (session.sets || []).map(s => s.exercise).filter(Boolean);
+      const unique = [];
+      setExs.forEach(ex => {
+        if (!unique.find(u => u.id === ex.id)) unique.push(ex);
+      });
+      setActiveExercises(unique);
+    }
+    setExistingActiveSession(null);
+  };
+
+  const handleFinishExisting = async (sessionId) => {
+    try {
+      await finishWorkout(sessionId);
+      setExistingActiveSession(null);
+      navigate('/');
+    } catch (err) {
+      setErrorMsg(err.response?.data?.detail || "Error finalizando entrenamiento previo");
+    }
+  };
+
+  const handleDiscardExisting = async (sessionId) => {
+    if (!window.confirm("¿Seguro que deseas descartar este entrenamiento en curso?")) return;
+    try {
+      await abandonWorkout(sessionId);
+      setExistingActiveSession(null);
+    } catch (err) {
+      setErrorMsg(err.response?.data?.detail || "Error al descartar la sesión");
     }
   };
 
@@ -169,6 +222,85 @@ const WorkoutSession = () => {
         <div style={{ width: '100%', maxWidth: '650px', marginBottom: '1.5rem' }}>
           <DailyNutritionCard />
         </div>
+
+        {existingActiveSession && (
+          <div style={{
+            width: '100%',
+            maxWidth: '650px',
+            marginBottom: '2rem',
+            background: 'linear-gradient(135deg, rgba(255, 159, 10, 0.15) 0%, rgba(20, 20, 20, 0.6) 100%)',
+            border: '1.5px solid #ff9f0a',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            boxShadow: '0 8px 24px rgba(255, 159, 10, 0.15)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.4rem' }}>⏳</span>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#ff9f0a', fontWeight: '700' }}>
+                  Tienes una sesión en progreso ({existingActiveSession.date})
+                </h3>
+              </div>
+              <span style={{ background: 'rgba(255, 159, 10, 0.2)', color: '#ff9f0a', padding: '3px 8px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: '700' }}>
+                EN CURSO
+              </span>
+            </div>
+
+            <p style={{ margin: '0 0 1.25rem 0', color: colors.textSecondary, fontSize: '0.9rem', lineHeight: '1.4' }}>
+              Iniciaste <strong>{existingActiveSession.routine?.name || 'Entrenamiento Libre'}</strong> con <strong>{existingActiveSession.sets?.length || 0} series</strong> registradas. Para que tus series sumen a tus estadísticas del mes y mapa de calor, finalízala o continúa agregando ejercicios.
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => handleResumeSession(existingActiveSession)}
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  background: 'var(--accent, #34c759)',
+                  color: '#000000',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem'
+                }}
+              >
+                ▶ Reanudar Sesión
+              </button>
+
+              <button
+                onClick={() => handleFinishExisting(existingActiveSession.id)}
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  color: 'var(--text-primary)',
+                  border: `1px solid ${colors.borderLine}`,
+                  borderRadius: '10px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem'
+                }}
+              >
+                ✓ Finalizar y Computar Métricas
+              </button>
+
+              <button
+                onClick={() => handleDiscardExisting(existingActiveSession.id)}
+                style={{
+                  padding: '0.75rem 1rem',
+                  background: 'transparent',
+                  color: '#ff4d4f',
+                  border: '1px solid rgba(255, 77, 79, 0.3)',
+                  borderRadius: '10px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                ✕ Descartar
+              </button>
+            </div>
+          </div>
+        )}
 
         <h1 style={{ marginBottom: '1rem', textAlign: 'center' }}>¿Qué vamos a entrenar hoy?</h1>
         <p style={{ color: colors.textSecondary, marginBottom: '2rem', maxWidth: '600px', textAlign: 'center', lineHeight: '1.5', fontSize: '1.1rem' }}>
