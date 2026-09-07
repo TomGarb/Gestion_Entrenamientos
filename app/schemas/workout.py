@@ -10,6 +10,7 @@ class WorkoutSetBase(BaseModel):
     weight_kg: float = 0.0
     rpe: Optional[int] = None
     notes: Optional[str] = ""
+    tipo_equipamiento: Optional[str] = "peso_libre"
 
 class WorkoutSetCreate(WorkoutSetBase):
     pass
@@ -18,6 +19,7 @@ class WorkoutSetResponse(WorkoutSetBase):
     id: int
     workout_log_id: int
     set_number: int
+    fuerza_bruta_estimada: Optional[float] = None
     exercise: Optional[ExerciseResponse] = None
     
     model_config = ConfigDict(from_attributes=True)

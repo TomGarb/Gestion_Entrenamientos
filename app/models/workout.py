@@ -67,6 +67,8 @@ class WorkoutSet(Base):
     weight_kg = Column(Float, nullable=False, default=0.0)
     rpe = Column(Integer, nullable=True)
     notes = Column(String(200), default="", nullable=False)
+    tipo_equipamiento = Column(String(30), default="peso_libre", nullable=True)
+    fuerza_bruta_estimada = Column(Float, nullable=True)
 
     # --- Relaciones -----------------------------------------------------------
     workout_log = relationship("WorkoutLog", back_populates="sets")

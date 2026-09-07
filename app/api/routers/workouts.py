@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from app.database import get_db
 from app.models.workout import WorkoutLog, WorkoutSet
 from app.models.routine import Routine, RoutineExercise
+from app.models.exercise import Exercise
 from app.schemas.workout import WorkoutLogCreate, WorkoutLogResponse, WorkoutSetCreate, WorkoutSetResponse
 from app.api.deps import get_current_user
 from app.models.user import User
@@ -104,14 +105,50 @@ def add_workout_set(log_id: int, set_in: WorkoutSetCreate, db: Session = Depends
     max_set = db.query(func.max(WorkoutSet.set_number)).filter(WorkoutSet.workout_log_id == log_id, WorkoutSet.exercise_id == set_in.exercise_id).scalar()
     next_set = (max_set or 0) + 1
 
+    # Determinar tipo de equipamiento y factor de ventaja mecánica
+    tipo_eq = (set_in.tipo_equipamiento or "peso_libre").lower().strip()
+    if tipo_eq in ["maquina", "máquina", "maquina_guiada"]:
+        tipo_eq = "maquina_guiada"
+        factor = 0.85
+    elif tipo_eq in ["polea", "poleas"]:
+        tipo_eq = "polea"
+        factor = 0.70
+    elif tipo_eq in ["peso_corporal", "corporal"]:
+        tipo_eq = "peso_corporal"
+        factor = 1.0
+    else:
+        tipo_eq = "peso_libre"
+        factor = 1.0
+
+    raw_weight = float(set_in.weight_kg or 0.0)
+
+    # Si es ejercicio de peso corporal o se especificó peso_corporal, sumar peso biométrico
+    ex_obj = db.query(Exercise).filter(Exercise.id == set_in.exercise_id).first()
+    is_bw = False
+    if ex_obj:
+        is_bw = bool(ex_obj.is_bodyweight or (ex_obj.equipment and "peso corporal" in ex_obj.equipment.lower()))
+
+    user_weight = float(current_user.weight_kg or 0.0)
+    if (tipo_eq == "peso_corporal" or is_bw) and user_weight > 0:
+        if raw_weight < user_weight:
+            effective_weight = user_weight + raw_weight
+        else:
+            effective_weight = raw_weight
+    else:
+        effective_weight = raw_weight
+
+    fuerza_bruta = round(effective_weight * factor, 2)
+
     new_set = WorkoutSet(
         workout_log_id=log_id,
         exercise_id=set_in.exercise_id,
         set_number=next_set,
         reps_completed=set_in.reps_completed,
-        weight_kg=set_in.weight_kg,
+        weight_kg=effective_weight,
         rpe=set_in.rpe,
-        notes=set_in.notes
+        notes=set_in.notes,
+        tipo_equipamiento=tipo_eq,
+        fuerza_bruta_estimada=fuerza_bruta
     )
     db.add(new_set)
     db.commit()

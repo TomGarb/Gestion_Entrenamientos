@@ -9,8 +9,8 @@ const MusclePieChart = ({ data }) => {
   }
 
   return (
-    <div style={{ width: '100%', height: 320 }}>
-      <ResponsiveContainer>
+    <div style={{ width: '100%', height: 320, minWidth: 0 }}>
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}

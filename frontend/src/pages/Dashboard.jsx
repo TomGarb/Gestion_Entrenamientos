@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getDashboardStats } from '../services/dashboardService';
 import { getActiveWorkout, finishWorkout } from '../services/workoutService';
 import { getGroups, getGroupFeed } from '../services/groupService';
+import { getExercises } from '../services/exerciseService';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -62,12 +63,24 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [statsData, groupsData, heatRes, volRes, exRes, active] = await Promise.all([
-          getDashboardStats(),
+        const [statsData, groupsData, heatRes, volRes, exList, active] = await Promise.all([
+          getDashboardStats().catch(err => {
+            console.error("Error fetching stats:", err);
+            return null;
+          }),
           getGroups().catch(() => []),
-          api.get('/api/analytics/activity-heatmap'),
-          api.get('/api/analytics/volume-by-muscle'),
-          api.get('/api/exercises'),
+          api.get('/api/analytics/activity-heatmap/').catch(err => {
+            console.error("Error fetching heatmap:", err);
+            return { data: [] };
+          }),
+          api.get('/api/analytics/volume-by-muscle/').catch(err => {
+            console.error("Error fetching volume by muscle:", err);
+            return { data: [] };
+          }),
+          getExercises().catch(err => {
+            console.error("Error fetching exercises:", err);
+            return [];
+          }),
           getActiveWorkout().catch(() => null)
         ]);
 
@@ -80,13 +93,13 @@ const Dashboard = () => {
           setSelectedGroupId(groupsData[0].id);
         }
         
-        setHeatmapData(heatRes.data);
-        setVolumeData(volRes.data);
+        setHeatmapData(heatRes?.data || []);
+        setVolumeData(volRes?.data || []);
         
-        const allEx = exRes.data;
+        const allEx = Array.isArray(exList) ? exList : (exList?.data || []);
         setExercises(allEx);
         
-        // Seleccionar por defecto press de banca o primer ejercicio
+        // Seleccionar por defecto ejercicio relevante o primer ejercicio
         if (allEx.length > 0) {
           const defaultEx = allEx.find(e => e.name.toLowerCase().includes('banca') || e.name.toLowerCase().includes('bench')) || allEx[0];
           setSelectedExerciseId(defaultEx.id);
@@ -128,10 +141,11 @@ const Dashboard = () => {
 
   const fetchProgression = async (exerciseId) => {
     try {
-      const res = await api.get(`/api/analytics/progression/${exerciseId}`);
-      setProgressionData(res.data);
+      const res = await api.get(`/api/analytics/progression/${exerciseId}/`);
+      setProgressionData(res.data || []);
     } catch (error) {
       console.error("Error fetching progression", error);
+      setProgressionData([]);
     }
   };
 
@@ -139,13 +153,16 @@ const Dashboard = () => {
     try {
       await finishWorkout(sessionId);
       setActiveSession(null);
-      // Recargar stats y heatmap
-      const [statsData, heatRes] = await Promise.all([
-        getDashboardStats(),
-        api.get('/api/analytics/activity-heatmap')
+      // Recargar todas las métricas y gráficos
+      const [statsData, heatRes, volRes] = await Promise.all([
+        getDashboardStats().catch(() => null),
+        api.get('/api/analytics/activity-heatmap/').catch(() => ({ data: [] })),
+        api.get('/api/analytics/volume-by-muscle/').catch(() => ({ data: [] }))
       ]);
-      setStats(statsData);
-      setHeatmapData(heatRes.data);
+      if (statsData) setStats(statsData);
+      if (heatRes?.data) setHeatmapData(heatRes.data);
+      if (volRes?.data) setVolumeData(volRes.data);
+      if (selectedExerciseId) fetchProgression(selectedExerciseId);
     } catch (err) {
       console.error("Error finalizando entrenamiento desde dashboard", err);
     }

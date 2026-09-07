@@ -13,6 +13,7 @@ from app.api.deps import get_current_user
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 @router.get("/volume-by-muscle")
+@router.get("/volume-by-muscle/")
 def get_volume_by_muscle(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -39,18 +40,21 @@ def get_volume_by_muscle(
     return [{"name": r[0] if r[0] else "Otros", "value": float(r[1] or 0)} for r in results if r[1] and float(r[1]) > 0]
 
 @router.get("/progression/{exercise_id}")
+@router.get("/progression/{exercise_id}/")
 def get_exercise_progression(
     exercise_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Obtiene el peso mximo levantado para un ejercicio especfico, agrupado por fecha.
+    Obtiene la Fuerza Bruta Estimada máxima levantada para un ejercicio específico, agrupado por fecha.
+    Neutraliza la ventaja mecánica de máquinas y poleas.
     """
+    fuerza_col = func.coalesce(WorkoutSet.fuerza_bruta_estimada, WorkoutSet.weight_kg)
     results = (
         db.query(
             cast(WorkoutLog.date, Date).label("workout_date"),
-            func.max(WorkoutSet.weight_kg).label("max_weight")
+            func.max(fuerza_col).label("max_weight")
         )
         .select_from(WorkoutSet)
         .join(WorkoutLog, WorkoutLog.id == WorkoutSet.workout_log_id)
@@ -58,7 +62,7 @@ def get_exercise_progression(
             WorkoutLog.user_id == current_user.id,
             WorkoutLog.status == 'completed',
             WorkoutSet.exercise_id == exercise_id,
-            WorkoutSet.weight_kg > 0
+            fuerza_col > 0
         )
         .group_by(cast(WorkoutLog.date, Date))
         .order_by(cast(WorkoutLog.date, Date))
@@ -66,9 +70,10 @@ def get_exercise_progression(
     )
     
     # Formatear para LineChart: { date: '2023-10-01', weight: 80 }
-    return [{"date": str(r[0]), "weight": float(r[1])} for r in results]
+    return [{"date": str(r[0]), "weight": round(float(r[1]), 2)} for r in results]
 
 @router.get("/activity-heatmap")
+@router.get("/activity-heatmap/")
 def get_activity_heatmap(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

@@ -10,6 +10,7 @@ from app.models.user import User
 
 router = APIRouter(prefix="/api/exercises", tags=["exercises"])
 
+@router.get("", response_model=List[ExerciseResponse])
 @router.get("/", response_model=List[ExerciseResponse])
 def get_exercises(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # Retorna ejercicios del sistema (user_id = None) y los personalizados del usuario

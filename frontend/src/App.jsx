@@ -49,6 +49,7 @@ function App() {
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="community" element={<Community />} />
               <Route path="workout" element={<WorkoutSession />} />
+              <Route path="workouts" element={<WorkoutSession />} />
               <Route path="settings" element={<Settings />} />
               <Route path="history" element={<History />} />
               <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

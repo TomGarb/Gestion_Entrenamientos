@@ -45,6 +45,7 @@ const WorkoutSession = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [existingActiveSession, setExistingActiveSession] = useState(null);
   const [savingExerciseId, setSavingExerciseId] = useState(null);
+  const [activeEquipmentSelector, setActiveEquipmentSelector] = useState(null);
 
   // --- Calculadora de Barra ---
   const [activeCalculator, setActiveCalculator] = useState(null);
@@ -210,18 +211,24 @@ const WorkoutSession = () => {
     
     try {
       setSavingExerciseId(exercise.id);
+      const currentEquip = input.tipo_equipamiento || 'peso_libre';
       const newSet = await addSet(activeLog.id, {
         exercise_id: exercise.id,
         weight_kg: finalWeight,
-        reps_completed: reps
+        reps_completed: reps,
+        tipo_equipamiento: currentEquip
       });
       
       setSavedSets(prev => [...prev, newSet]);
       
-      // Limpiar inputs
+      // Limpiar inputs pero mantener el equipamiento seleccionado
       setCurrentInputs(prev => ({
         ...prev,
-        [exercise.id]: { weight: '', reps: '' }
+        [exercise.id]: {
+          weight: '',
+          reps: '',
+          tipo_equipamiento: currentEquip
+        }
       }));
     } catch (err) {
       console.error("Error al guardar serie", err);
@@ -490,7 +497,22 @@ const WorkoutSession = () => {
                   return (
                     <div key={set.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.borderLine}`, padding: '0.75rem 1rem', borderRadius: '8px' }}>
                       <span style={{ width: '40px', fontWeight: 'bold', color: colors.textSecondary }}>#{idx + 1}</span>
-                      <span style={{ fontWeight: '600' }}>{displayWeight}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: '600' }}>{displayWeight}</span>
+                        {set.tipo_equipamiento && set.tipo_equipamiento !== 'peso_libre' && (
+                          <span style={{
+                            fontSize: '0.72rem',
+                            padding: '2px 7px',
+                            borderRadius: '6px',
+                            background: 'rgba(52, 199, 89, 0.12)',
+                            color: 'var(--accent, #34c759)',
+                            border: '1px solid rgba(52, 199, 89, 0.25)',
+                            fontWeight: '700'
+                          }}>
+                            {set.tipo_equipamiento === 'maquina_guiada' ? 'Máquina (85%)' : 'Polea (70%)'} • F. Bruta: {set.fuerza_bruta_estimada ? Math.round(set.fuerza_bruta_estimada * 10) / 10 : set.weight_kg} kg
+                          </span>
+                        )}
+                      </div>
                       <span>x {set.reps_completed} reps</span>
                       <button 
                         onClick={() => handleRemoveSet(set.id)}
@@ -513,64 +535,93 @@ const WorkoutSession = () => {
                 <div>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <span style={{ width: '40px', fontWeight: 'bold', color: colors.accentRed }}>#{exSets.length + 1}</span>
-                                        <div style={{ position: 'relative', display: 'flex', flex: 1 }}>
-                        <input 
-                          type="number" step="0.5" 
-                          placeholder={isBw ? "+ lastre kg (0)" : "kg"} 
-                          value={currentInput.weight} 
-                          onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSaveSet(ex)}
-                          style={{ ...inputStyle, width: '100%', paddingRight: !isBw ? '40px' : '0.75rem' }} 
-                        />
-                        {!isBw && (
+                    <div style={{ position: 'relative', display: 'flex', flex: 1 }}>
+                      <input 
+                        type="number" step="0.5" 
+                        placeholder={isBw ? "+ lastre kg (0)" : "kg"} 
+                        value={currentInput.weight} 
+                        onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSaveSet(ex)}
+                        style={{ ...inputStyle, width: '100%', paddingRight: !isBw && (currentInput.tipo_equipamiento === 'peso_libre' || !currentInput.tipo_equipamiento) ? '40px' : '0.75rem' }} 
+                      />
+                      {!isBw && (currentInput.tipo_equipamiento === 'peso_libre' || !currentInput.tipo_equipamiento) && (
+                        <button 
+                          type="button"
+                          onClick={() => setActiveCalculator(activeCalculator === ex.id ? null : ex.id)}
+                          style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 5px' }}
+                          title="Calculadora de Barra (Peso Libre)"
+                        >
+                          🏋️
+                        </button>
+                      )}
+                      
+                      {/* Popover de Calculadora */}
+                      {activeCalculator === ex.id && (
+                        <div style={{ position: 'absolute', top: 'calc(100% + 10px)', left: 0, zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--border-line)', padding: '1rem', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', width: '250px' }}>
+                          <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.95rem', color: 'var(--text-primary)' }}>Calculadora de Barra</h4>
+                          
+                          <div style={{ marginBottom: '0.8rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Peso de la barra (kg)</label>
+                            <input 
+                              type="number" step="0.5"
+                              value={barWeight}
+                              onChange={(e) => handleBarWeightChange(e.target.value)}
+                              style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', color: 'white' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Discos por lado (kg)</label>
+                            <input 
+                              type="number" step="0.5"
+                              value={platesWeight}
+                              onChange={(e) => setPlatesWeight(e.target.value)}
+                              placeholder="Ej: 20"
+                              autoFocus
+                              onKeyDown={(e) => e.key === 'Enter' && handleApplyCalculator(ex.id)}
+                              style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', color: 'white' }}
+                            />
+                          </div>
+                          
                           <button 
                             type="button"
-                            onClick={() => setActiveCalculator(activeCalculator === ex.id ? null : ex.id)}
-                            style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 5px' }}
-                            title="Calculadora de Barra (Peso Libre)"
+                            onClick={() => handleApplyCalculator(ex.id)}
+                            style={{ width: '100%', padding: '0.6rem', background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
                           >
-                            🏋️
+                            Aplicar ({(parseFloat(platesWeight || 0) * 2 + parseFloat(barWeight || 0))} kg)
                           </button>
-                        )}
-                        
-                        {/* Popover de Calculadora */}
-                        {activeCalculator === ex.id && (
-                          <div style={{ position: 'absolute', top: 'calc(100% + 10px)', left: 0, zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--border-line)', padding: '1rem', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', width: '250px' }}>
-                            <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.95rem', color: 'var(--text-primary)' }}>Calculadora de Barra</h4>
-                            
-                            <div style={{ marginBottom: '0.8rem' }}>
-                              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Peso de la barra (kg)</label>
-                              <input 
-                                type="number" step="0.5"
-                                value={barWeight}
-                                onChange={(e) => handleBarWeightChange(e.target.value)}
-                                style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', color: 'white' }}
-                              />
-                            </div>
-                            
-                            <div style={{ marginBottom: '1rem' }}>
-                              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Discos por lado (kg)</label>
-                              <input 
-                                type="number" step="0.5"
-                                value={platesWeight}
-                                onChange={(e) => setPlatesWeight(e.target.value)}
-                                placeholder="Ej: 20"
-                                autoFocus
-                                onKeyDown={(e) => e.key === 'Enter' && handleApplyCalculator(ex.id)}
-                                style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-line)', background: 'var(--bg-input)', color: 'white' }}
-                              />
-                            </div>
-                            
-                            <button 
-                              type="button"
-                              onClick={() => handleApplyCalculator(ex.id)}
-                              style={{ width: '100%', padding: '0.6rem', background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-                            >
-                              Aplicar ({(parseFloat(platesWeight || 0) * 2 + parseFloat(barWeight || 0))} kg)
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botón sutil de Equipamiento Avanzado */}
+                    {!isBw && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveEquipmentSelector(activeEquipmentSelector === ex.id ? null : ex.id)}
+                        style={{
+                          background: activeEquipmentSelector === ex.id ? 'rgba(52, 199, 89, 0.15)' : 'var(--bg-input)',
+                          border: `1px solid ${activeEquipmentSelector === ex.id ? 'var(--accent, #34c759)' : colors.borderLine}`,
+                          color: activeEquipmentSelector === ex.id ? 'var(--accent, #34c759)' : colors.textSecondary,
+                          borderRadius: '8px',
+                          padding: '0.65rem 0.75rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '0.82rem',
+                          whiteSpace: 'nowrap',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="Opciones avanzadas de equipamiento (Ventaja mecánica)"
+                      >
+                        <span>⚙️</span>
+                        <span style={{ fontWeight: '600' }}>
+                          {currentInput.tipo_equipamiento === 'maquina_guiada' ? 'Máquina' : currentInput.tipo_equipamiento === 'polea' ? 'Polea' : 'Libre'}
+                        </span>
+                      </button>
+                    )}
+
                     <input 
                       type="number" placeholder="reps" 
                       value={currentInput.reps} 
@@ -601,6 +652,64 @@ const WorkoutSession = () => {
                       {savingExerciseId === ex.id ? '...' : '✓'}
                     </button>
                   </div>
+
+                  {/* Selector Horizontal de Píldoras Táctiles: [Libre], [Máquina], [Polea] */}
+                  {!isBw && activeEquipmentSelector === ex.id && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginTop: '0.6rem',
+                      marginLeft: '45px',
+                      padding: '0.55rem 0.85rem',
+                      background: 'var(--bg-input)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border-line)',
+                      flexWrap: 'wrap'
+                    }}>
+                      <span style={{ fontSize: '0.8rem', color: colors.textSecondary, fontWeight: '600', marginRight: '4px' }}>
+                        Equipamiento:
+                      </span>
+                      {[
+                        { id: 'peso_libre', label: 'Libre', factor: '100%', desc: 'Peso libre (Fuerza = 100%)' },
+                        { id: 'maquina_guiada', label: 'Máquina', factor: '85%', desc: 'Máquina guiada (Fuerza = 85%)' },
+                        { id: 'polea', label: 'Polea', factor: '70%', desc: 'Polea (Fuerza = 70%)' }
+                      ].map(opt => {
+                        const isSelected = (currentInput.tipo_equipamiento || 'peso_libre') === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => {
+                              handleInputChange(ex.id, 'tipo_equipamiento', opt.id);
+                              if (opt.id !== 'peso_libre' && activeCalculator === ex.id) {
+                                setActiveCalculator(null);
+                              }
+                            }}
+                            style={{
+                              padding: '0.35rem 0.85rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.82rem',
+                              fontWeight: isSelected ? '700' : '500',
+                              border: isSelected ? '1px solid var(--accent, #34c759)' : `1px solid ${colors.borderLine}`,
+                              background: isSelected ? 'var(--accent, #34c759)' : 'rgba(255, 255, 255, 0.04)',
+                              color: isSelected ? '#000000' : colors.textSecondary,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              boxShadow: isSelected ? '0 2px 8px rgba(52, 199, 89, 0.35)' : 'none',
+                              transition: 'all 0.15s ease'
+                            }}
+                            title={opt.desc}
+                          >
+                            <span>{opt.label}</span>
+                            <span style={{ fontSize: '0.72rem', opacity: isSelected ? 0.85 : 0.65 }}>({opt.factor})</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Detalle visual dinámico para ejercicios de peso corporal */}
                   {isBw && (
