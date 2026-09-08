@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getExercises, createExercise, deleteExercise } from '../services/exerciseService';
 
 const Exercises = () => {
+  const location = useLocation();
   const [exercises, setExercises] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', muscle_group: '', description: '', equipment: '', is_bodyweight: false });
@@ -13,6 +15,13 @@ const Exercises = () => {
   useEffect(() => {
     fetchExercises();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('new') === '1' || params.get('create') === '1' || params.get('new') === 'true') {
+      setShowModal(true);
+    }
+  }, [location.search]);
 
   const fetchExercises = async () => {
     try {

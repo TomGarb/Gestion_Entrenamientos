@@ -21,7 +21,8 @@ import {
   RoutineIcon,
   CalendarIcon,
   UsersIcon,
-  PlayIcon
+  PlayIcon,
+  PlusIcon
 } from './Icons';
 
 const MainLayout = () => {
@@ -34,6 +35,7 @@ const MainLayout = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showFoodModal, setShowFoodModal] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
+  const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
   
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -330,7 +332,7 @@ const MainLayout = () => {
         <NotificationDropdown onClose={() => setShowNotifications(false)} />
       )}
 
-      {/* 🚀 📱 Bottom Navigation (Solo Móvil - Propuesta C: Floating Island Dock sin saturación) */}
+      {/* 🚀 📱 Bottom Navigation (Solo Móvil - Opción A: 4 pestañas esenciales + Speed Dial Central) */}
       <div className="mobile-nav floating-dock-container">
         <nav className="floating-dock">
           
@@ -339,19 +341,37 @@ const MainLayout = () => {
             <span className="dock-label">Inicio</span>
           </Link>
 
-          <Link to="/exercises" className={`dock-item ${isActive('/exercises') ? 'active' : ''}`} title="Ejercicios">
-            <DumbbellIcon size={20} color={isActive('/exercises') ? 'var(--accent)' : 'currentColor'} />
-            <span className="dock-label">Ejercicios</span>
-          </Link>
-
-          <Link to="/workout" className="dock-cta-btn" title="Entrenar">
-            <PlayIcon size={20} color="#000000" />
-          </Link>
-
           <Link to="/routines" className={`dock-item ${isActive('/routines') ? 'active' : ''}`} title="Rutinas">
             <RoutineIcon size={20} color={isActive('/routines') ? 'var(--accent)' : 'currentColor'} />
             <span className="dock-label">Rutinas</span>
           </Link>
+
+          {/* Botón Central Elevado: Disparador del Speed Dial */}
+          <button 
+            type="button" 
+            className="dock-cta-btn" 
+            onClick={() => setIsSpeedDialOpen(prev => !prev)}
+            title={isSpeedDialOpen ? 'Cerrar acciones rápidas' : 'Acciones rápidas'}
+            aria-label={isSpeedDialOpen ? 'Cerrar acciones rápidas' : 'Acciones rápidas'}
+            style={{
+              border: 'none',
+              cursor: 'pointer',
+              outline: 'none',
+              transform: isSpeedDialOpen ? 'translateY(-5px) scale(1.08)' : 'translateY(-4px)',
+              boxShadow: isSpeedDialOpen ? '0 6px 20px rgba(52, 199, 89, 0.65)' : '0 4px 14px rgba(52, 199, 89, 0.45)',
+              transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              transform: isSpeedDialOpen ? 'rotate(45deg)' : 'none'
+            }}>
+              <PlusIcon size={22} color="#000000" strokeWidth={2.8} />
+            </div>
+          </button>
 
           <Link to="/calendar" className={`dock-item ${isActive('/calendar') ? 'active' : ''}`} title="Calendario">
             <CalendarIcon size={20} color={isActive('/calendar') ? 'var(--accent)' : 'currentColor'} />
@@ -363,23 +383,20 @@ const MainLayout = () => {
             <span className="dock-label">Comunidad</span>
           </Link>
 
-          {user?.is_admin && (
-            <Link to="/admin" className={`dock-item ${isActive('/admin') ? 'active' : ''}`} title="Admin">
-              <ShieldIcon size={20} color={isActive('/admin') ? 'var(--accent)' : 'currentColor'} />
-              <span className="dock-label">Admin</span>
-            </Link>
-          )}
-
         </nav>
       </div>
 
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
       <InitialSetupModal />
 
-      {/* Botón Flotante de Acciones Rápidas (Speed Dial FAB) */}
+      {/* Botón Flotante y Menú de Acciones Rápidas (Speed Dial) */}
       <SpeedDialFAB
+        isOpen={isSpeedDialOpen}
+        onToggle={() => setIsSpeedDialOpen(prev => !prev)}
+        onClose={() => setIsSpeedDialOpen(false)}
         onOpenFoodModal={() => setShowFoodModal(true)}
         onOpenWeightModal={() => setShowWeightModal(true)}
+        isAdmin={Boolean(user?.is_admin)}
       />
 
       {/* Modales Globales */}
